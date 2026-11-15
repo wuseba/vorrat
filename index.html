@@ -401,8 +401,8 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const vorratRef = collection(db, "vorrat");
-    const einkaufRef = collection(db, "einkaufsliste");
+    const vorratRef = collection(db, "haushalte", "Carsebama_200825", "vorrat");
+    const einkaufRef = collection(db, "haushalte", "Carsebama_200825", "einkaufsliste");
 
     let inventory = [];
     let shoppingItems = [];
@@ -558,7 +558,7 @@
 
         // 1. Eigenes Familien-Gedächtnis prüfen
         try {
-            const customSnap = await getDoc(doc(db, "barcodes", barcode));
+            const customSnap = await getDoc(doc(db, "haushalte", "Carsebama_200825", "barcodes", barcode));
             if (customSnap.exists()) {
                 const c = customSnap.data();
                 document.getElementById('name').value = c.name || '';
@@ -690,7 +690,7 @@
         };
 
         if (scannedBarcode) {
-            await setDoc(doc(db, "barcodes", scannedBarcode), {
+            await setDoc(doc(db, "haushalte", "Carsebama_200825", "barcodes", scannedBarcode), {
                 name: itemData.name,
                 amount: itemData.amount,
                 unit: itemData.unit,
