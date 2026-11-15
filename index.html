@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vorratsschrank</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c2410c">
+    <style>
+        /* HIER KANNST DU FARBE UND HINTERGRUNDBILD GANZ LEICHT ÄNDERN */
+        :root {
+            --primary: #c2410c;        /* Warmes Terrakotta-Orange (Alternative z.B. #1e3a8a für Dunkelblau) */
+            --primary-light: #ffedd5;  /* Helles Orange für die Kategorie-Badges */
+            --bg-image: url('https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=80');
+            --card: rgba(255, 255, 255, 0.92); /* Leicht transparentes Weiß für den Milchglas-Effekt */
+            --text: #1f2937;
+            --danger: #d32f2f;
+            --warning: #ed6c02;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            color: var(--text);
+            padding-bottom: 40px;
+            min-height: 100vh;
+            /* Hintergrundbild mit leichter Abdunkelung, damit alles gut lesbar bleibt */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)), var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Formular-Karte mit Milchglas-Effekt */
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        button.add-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        button.add-btn:active {
+            opacity: 0.9;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filters input, .filters select {
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            border: none;
+        }
+
+        /* Artikelliste */
+        .item-card {
+            background: var(--card);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+            border-left: 5px solid var(--primary);
+        }
+
+        .item-card.expiring-soon {
+            border-left-color: var(--warning);
+        }
+
+        .item-card.expired {
+            border-left-color: var(--danger);
+            background-color: rgba(255, 240, 240, 0.94);
+        }
+
+        .item-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1.05rem;
+        }
+
+        .item-meta {
+            font-size: 0.85rem;
+            color: #4b5563;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 50%;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-display {
+            font-weight: bold;
+            min-width: 55px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .empty-state {
+            background: var(--card);
+            border-radius: 14px;
+            text-align: center;
+            color: #4b5563;
+            padding: 30px 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🥫 Unser Vorratsschrank</h1>
+</header>
+
+<div class="container">
+    <div class="card">
+        <h2>Neuer Artikel</h2>
+        <form id="addForm" class="form-grid">
+            <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten)" required>
+            <input type="number" id="amount" placeholder="Menge" value="1" min="0.1" step="any" required>
+            <select id="unit">
+                <option value="Stk.">Stück / Packung</option>
+                <option value="g">Gramm (g)</option>
+                <option value="ml">Milliliter (ml)</option>
+                <option value="Dosen">Dosen / Gläser</option>
+            </select>
+            <select id="category">
+                <option value="Konserven">🥫 Konserven & Gläser</option>
+                <option value="Trockenwaren">🍝 Nudeln, Reis & Mehl</option>
+                <option value="Gewürze">🧂 Gewürze & Soßen</option>
+                <option value="Backen">🧁 Backzutaten</option>
+                <option value="Getränke">🧃 Getränke</option>
+                <option value="Sonstiges">📦 Sonstiges</option>
+            </select>
+            <input type="date" id="mhd" title="Mindesthaltbarkeitsdatum">
+            <button type="submit" class="add-btn full-width">+ In den Schrank legen</button>
+        </form>
+    </div>
+
+    <div class="filters">
+        <input type="text" id="searchInput" placeholder="🔍 Suchen...">
+        <select id="filterCategory">
+            <option value="ALLE">Alle Kategorien</option>
+            <option value="Konserven">Konserven</option>
+            <option value="Trockenwaren">Trockenwaren</option>
+            <option value="Gewürze">Gewürze</option>
+            <option value="Backen">Backen</option>
+            <option value="Getränke">Getränke</option>
+            <option value="Sonstiges">Sonstiges</option>
+        </select>
+    </div>
+
+    <div id="inventoryList"></div>
+</div>
+
+<script>
+    let inventory = JSON.parse(localStorage.getItem('meinVorrat')) || [];
+    const form = document.getElementById('addForm');
+    const listContainer = document.getElementById('inventoryList');
+    const searchInput = document.getElementById('searchInput');
+    const filterCategory = document.getElementById('filterCategory');
+
+    function saveData() {
+        localStorage.setItem('meinVorrat', JSON.stringify(inventory));
+        renderList();
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newItem = {
+            id: Date.now(),
+            name: document.getElementById('name').value.trim(),
+            amount: parseFloat(document.getElementById('amount').value),
+            unit: document.getElementById('unit').value,
+            category: document.getElementById('category').value,
+            mhd: document.getElementById('mhd').value
+        };
+        inventory.push(newItem);
+        form.reset();
+        document.getElementById('amount').value = 1;
+        saveData();
+    });
+
+    function changeAmount(id, delta) {
+        const item = inventory.find(i => i.id === id);
+        if (!item) return;
+        const step = (item.unit === 'g' || item.unit === 'ml') ? 50 : 1;
+        item.amount = Math.round((item.amount + (delta * step)) * 10) / 10;
+        if (item.amount <= 0) {
+            if (confirm(`"${item.name}" ist aufgebraucht. Aus der Liste entfernen?`)) {
+                inventory = inventory.filter(i => i.id !== id);
+            } else {
+                item.amount = 0;
+            }
+        }
+        saveData();
+    }
+
+    function getMhdStatus(mhdString) {
+        if (!mhdString) return { text: 'Kein MHD', cssClass: '' };
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const mhdDate = new Date(mhdString);
+        const diffDays = Math.ceil((mhdDate - today) / (1000 * 60 * 60 * 24));
+        const formattedDate = mhdDate.toLocaleDateString('de-DE');
+
+        if (diffDays < 0) return { text: `⚠️ Abgelaufen (${formattedDate})`, cssClass: 'expired' };
+        if (diffDays <= 14) return { text: `⏳ Bald (${formattedDate})`, cssClass: 'expiring-soon' };
+        return { text: `MHD: ${formattedDate}`, cssClass: '' };
+    }
+
+    function renderList() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCat = filterCategory.value;
+        let filtered = inventory.filter(item => {
+            const matchesName = item.name.toLowerCase().includes(searchTerm);
+            const matchesCat = selectedCat === 'ALLE' || item.category === selectedCat;
+            return matchesName && matchesCat;
+        });
+
+        filtered.sort((a, b) => {
+            if (!a.mhd) return 1;
+            if (!b.mhd) return -1;
+            return new Date(a.mhd) - new Date(b.mhd);
+        });
+
+        listContainer.innerHTML = '';
+        if (filtered.length === 0) {
+            listContainer.innerHTML = '<div class="empty-state">Keine Artikel gefunden. Zeit zum Einkaufen! 🛒</div>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const mhdInfo = getMhdStatus(item.mhd);
+            const card = document.createElement('div');
+            card.className = `item-card ${mhdInfo.cssClass}`;
+            card.innerHTML = `
+                <div class="item-info">
+                    <h3>${item.name}</h3>
+                    <div class="item-meta">
+                        <span class="badge">${item.category}</span>
+                        <span>${mhdInfo.text}</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="qty-btn" onclick="changeAmount(${item.id}, -1)">-</button>
+                    <span class="qty-display">${item.amount} ${item.unit}</span>
+                    <button class="qty-btn" onclick="changeAmount(${item.id}, 1)">+</button>
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+    }
+
+    searchInput.addEventListener('input', renderList);
+    filterCategory.addEventListener('change', renderList);
+    renderList();
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js');
+    }
+</script>
+</body>
+</html>
