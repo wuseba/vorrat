@@ -245,6 +245,7 @@
             <select id="category">
                 <option value="Konserven">🥫 Konserven & Gläser</option>
                 <option value="Trockenwaren">🍝 Nudeln, Reis & Mehl</option>
+                <option value="Molkerei">🧀 Molkereiprodukte</option>
                 <option value="Gewürze">🧂 Gewürze & Soßen</option>
                 <option value="Backen">🧁 Backzutaten</option>
                 <option value="Getränke">🧃 Getränke</option>
@@ -257,15 +258,16 @@
 
     <div class="filters">
         <input type="text" id="searchInput" placeholder="🔍 Suchen...">
-        <select id="filterCategory">
-            <option value="ALLE">Alle Kategorien</option>
-            <option value="Konserven">Konserven</option>
-            <option value="Trockenwaren">Trockenwaren</option>
-            <option value="Gewürze">Gewürze</option>
-            <option value="Backen">Backen</option>
-            <option value="Getränke">Getränke</option>
-            <option value="Sonstiges">Sonstiges</option>
-        </select>
+            <select id="filterCategory">
+                <option value="ALLE">Alle Kategorien</option>
+                <option value="Konserven">Konserven</option>
+                <option value="Trockenwaren">Trockenwaren</option>
+                <option value="Molkerei">Molkereiprodukte</option>
+                <option value="Gewürze">Gewürze</option>
+                <option value="Backen">Backen</option>
+                <option value="Getränke">Getränke</option>
+                <option value="Sonstiges">Sonstiges</option>
+            </select>
     </div>
 
     <div id="inventoryList"></div>
@@ -333,8 +335,10 @@
                 const p = data.product;
                 const brand = p.brands ? p.brands.split(',')[0].trim() : '';
                 const prodName = p.product_name_de || p.product_name || '';
-                const fullName = [brand, prodName].filter(Boolean).join(' - ');
-
+                // Entfernt eventuelle Barcode-Zahlen (8-14 Ziffern) und überflüssige Bindestriche aus dem Namen
+                const rawName = [brand, prodName].filter(Boolean).join(' - ');
+                const fullName = rawName.replace(/\b\d{8,14}\b/g, '').replace(/\s*-\s*$/g, '').replace(/^\s*-\s*/g, '').trim();
+                
                 if (fullName) {
                     document.getElementById('name').value = fullName;
                 }
@@ -360,7 +364,9 @@
                 }
 
                 const tags = (p.categories_tags || []).join(' ').toLowerCase();
-                if (tags.includes('beverage') || tags.includes('drink') || tags.includes('water') || tags.includes('juice')) {
+                if (tags.includes('dairy') || tags.includes('milk') || tags.includes('cheese') || tags.includes('yogurt') || tags.includes('butter')) {
+                    document.getElementById('category').value = 'Molkerei';
+                } else if (tags.includes('beverage') || tags.includes('drink') || tags.includes('water') || tags.includes('juice')) {
                     document.getElementById('category').value = 'Getränke';
                 } else if (tags.includes('pasta') || tags.includes('rice') || tags.includes('flour') || tags.includes('cereal')) {
                     document.getElementById('category').value = 'Trockenwaren';
