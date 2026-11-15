@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vorrat-v1';
+const CACHE_NAME = 'vorrat-v2';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (event) => {

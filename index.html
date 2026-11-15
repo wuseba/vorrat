@@ -7,12 +7,11 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#c2410c">
     <style>
-        /* HIER KANNST DU FARBE UND HINTERGRUNDBILD GANZ LEICHT ÄNDERN */
         :root {
-            --primary: #c2410c;        /* Warmes Terrakotta-Orange (Alternative z.B. #1e3a8a für Dunkelblau) */
-            --primary-light: #ffedd5;  /* Helles Orange für die Kategorie-Badges */
+            --primary: #c2410c;
+            --primary-light: #ffedd5;
             --bg-image: url('https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=80');
-            --card: rgba(255, 255, 255, 0.92); /* Leicht transparentes Weiß für den Milchglas-Effekt */
+            --card: rgba(255, 255, 255, 0.92);
             --text: #1f2937;
             --danger: #d32f2f;
             --warning: #ed6c02;
@@ -28,7 +27,6 @@
             color: var(--text);
             padding-bottom: 40px;
             min-height: 100vh;
-            /* Hintergrundbild mit leichter Abdunkelung, damit alles gut lesbar bleibt */
             background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)), var(--bg-image);
             background-size: cover;
             background-position: center;
@@ -43,11 +41,21 @@
             top: 0;
             z-index: 10;
             box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         header h1 {
             margin: 0;
             font-size: 1.3rem;
+        }
+
+        .sync-status {
+            font-size: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
         }
 
         .container {
@@ -56,7 +64,6 @@
             padding: 16px;
         }
 
-        /* Formular-Karte mit Milchglas-Effekt */
         .card {
             background: var(--card);
             backdrop-filter: blur(8px);
@@ -102,10 +109,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
 
-        button.add-btn:active {
-            opacity: 0.9;
-        }
-
         .filters {
             display: flex;
             gap: 8px;
@@ -117,7 +120,6 @@
             border: none;
         }
 
-        /* Artikelliste */
         .item-card {
             background: var(--card);
             backdrop-filter: blur(8px);
@@ -132,24 +134,11 @@
             border-left: 5px solid var(--primary);
         }
 
-        .item-card.expiring-soon {
-            border-left-color: var(--warning);
-        }
+        .item-card.expiring-soon { border-left-color: var(--warning); }
+        .item-card.expired { border-left-color: var(--danger); background-color: rgba(255, 240, 240, 0.94); }
 
-        .item-card.expired {
-            border-left-color: var(--danger);
-            background-color: rgba(255, 240, 240, 0.94);
-        }
-
-        .item-info h3 {
-            margin: 0 0 4px 0;
-            font-size: 1.05rem;
-        }
-
-        .item-meta {
-            font-size: 0.85rem;
-            color: #4b5563;
-        }
+        .item-info h3 { margin: 0 0 4px 0; font-size: 1.05rem; }
+        .item-meta { font-size: 0.85rem; color: #4b5563; }
 
         .badge {
             display: inline-block;
@@ -162,41 +151,17 @@
             margin-right: 6px;
         }
 
-        .controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .controls { display: flex; align-items: center; gap: 8px; }
         .qty-btn {
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            border-radius: 50%;
-            border: 1px solid #d1d5db;
-            background: #ffffff;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 36px; height: 36px; padding: 0; border-radius: 50%;
+            border: 1px solid #d1d5db; background: #ffffff;
+            font-size: 1.2rem; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .qty-display {
-            font-weight: bold;
-            min-width: 55px;
-            text-align: center;
-            font-size: 0.95rem;
-        }
-
+        .qty-display { font-weight: bold; min-width: 55px; text-align: center; font-size: 0.95rem; }
         .empty-state {
-            background: var(--card);
-            border-radius: 14px;
-            text-align: center;
-            color: #4b5563;
-            padding: 30px 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+            background: var(--card); border-radius: 14px; text-align: center;
+            color: #4b5563; padding: 30px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.12);
         }
     </style>
 </head>
@@ -204,6 +169,7 @@
 
 <header>
     <h1>🥫 Unser Vorratsschrank</h1>
+    <span id="syncStatus" class="sync-status">⏳ Verbinde...</span>
 </header>
 
 <div class="container">
@@ -247,48 +213,81 @@
     <div id="inventoryList"></div>
 </div>
 
-<script>
-    let inventory = JSON.parse(localStorage.getItem('meinVorrat')) || [];
+<!-- FIREBASE ECHTZEIT-DATENBANK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // HIER DEINE EIGENEN DATEN AUS FIREBASE EINFÜGEN:
+    const firebaseConfig = {
+      apiKey: "AIzaSyA9buBCLmg_S9pypxnyoHu5NaYPhkJzLIo",
+      authDomain: "vorratsschrank-d23ea.firebaseapp.com",
+      projectId: "vorratsschrank-d23ea",
+      storageBucket: "vorratsschrank-d23ea.firebasestorage.app",
+      messagingSenderId: "691274363396",
+      appId: "1:691274363396:web:dfd7e177f8c52c1799bb51"
+    };
+
+    // Firebase starten
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const vorratRef = collection(db, "vorrat");
+
+    let inventory = [];
     const form = document.getElementById('addForm');
     const listContainer = document.getElementById('inventoryList');
     const searchInput = document.getElementById('searchInput');
     const filterCategory = document.getElementById('filterCategory');
+    const syncStatus = document.getElementById('syncStatus');
 
-    function saveData() {
-        localStorage.setItem('meinVorrat', JSON.stringify(inventory));
+    // ECHTZEIT-LISTENER: Lauscht dauerhaft auf Änderungen in der Cloud
+    onSnapshot(vorratRef, (snapshot) => {
+        inventory = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        syncStatus.textContent = "🟢 Live";
         renderList();
-    }
+    }, (error) => {
+        console.error(error);
+        syncStatus.textContent = "🔴 Offline / Fehler";
+    });
 
-    form.addEventListener('submit', function(e) {
+    // Neuen Artikel in die Cloud schreiben
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         const newItem = {
-            id: Date.now(),
             name: document.getElementById('name').value.trim(),
             amount: parseFloat(document.getElementById('amount').value),
             unit: document.getElementById('unit').value,
             category: document.getElementById('category').value,
             mhd: document.getElementById('mhd').value
         };
-        inventory.push(newItem);
+
         form.reset();
         document.getElementById('amount').value = 1;
-        saveData();
+        await addDoc(vorratRef, newItem);
     });
 
-    function changeAmount(id, delta) {
+    // Menge in der Cloud anpassen (+ oder -)
+    window.changeAmount = async function(id, delta) {
         const item = inventory.find(i => i.id === id);
         if (!item) return;
+
         const step = (item.unit === 'g' || item.unit === 'ml') ? 50 : 1;
-        item.amount = Math.round((item.amount + (delta * step)) * 10) / 10;
-        if (item.amount <= 0) {
+        const newAmount = Math.round((item.amount + (delta * step)) * 10) / 10;
+        const itemDoc = doc(db, "vorrat", id);
+
+        if (newAmount <= 0) {
             if (confirm(`"${item.name}" ist aufgebraucht. Aus der Liste entfernen?`)) {
-                inventory = inventory.filter(i => i.id !== id);
+                await deleteDoc(itemDoc);
             } else {
-                item.amount = 0;
+                await updateDoc(itemDoc, { amount: 0 });
             }
+        } else {
+            await updateDoc(itemDoc, { amount: newAmount });
         }
-        saveData();
-    }
+    };
 
     function getMhdStatus(mhdString) {
         if (!mhdString) return { text: 'Kein MHD', cssClass: '' };
@@ -337,9 +336,9 @@
                     </div>
                 </div>
                 <div class="controls">
-                    <button class="qty-btn" onclick="changeAmount(${item.id}, -1)">-</button>
+                    <button class="qty-btn" onclick="changeAmount('${item.id}', -1)">-</button>
                     <span class="qty-display">${item.amount} ${item.unit}</span>
-                    <button class="qty-btn" onclick="changeAmount(${item.id}, 1)">+</button>
+                    <button class="qty-btn" onclick="changeAmount('${item.id}', 1)">+</button>
                 </div>
             `;
             listContainer.appendChild(card);
@@ -348,7 +347,6 @@
 
     searchInput.addEventListener('input', renderList);
     filterCategory.addEventListener('change', renderList);
-    renderList();
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js');
