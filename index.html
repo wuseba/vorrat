@@ -12,10 +12,11 @@
             --primary: #c2410c;
             --primary-light: #ffedd5;
             --bg-image: url('https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=80');
-            --card: rgba(255, 255, 255, 0.92);
+            --card: rgba(255, 255, 255, 0.94);
             --text: #1f2937;
             --danger: #d32f2f;
             --warning: #ed6c02;
+            --success: #15803d;
         }
 
         * {
@@ -37,26 +38,53 @@
         header {
             background-color: var(--primary);
             color: white;
-            padding: 16px 20px;
+            padding: 14px 16px 0 16px;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20;
             box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 12px;
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.25rem;
         }
 
         .sync-status {
-            font-size: 0.8rem;
-            background: rgba(0, 0, 0, 0.2);
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.25);
             padding: 4px 10px;
             border-radius: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            padding: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #f3f4f6;
+            color: var(--primary);
         }
 
         .container {
@@ -102,9 +130,7 @@
             gap: 6px;
         }
 
-        .scan-btn.active {
-            background-color: var(--danger);
-        }
+        .scan-btn.active { background-color: var(--danger); }
 
         #reader-wrapper {
             display: none;
@@ -112,12 +138,9 @@
             border-radius: 10px;
             overflow: hidden;
             background: #000;
-            position: relative;
         }
 
-        #reader {
-            width: 100%;
-        }
+        #reader { width: 100%; }
 
         #scan-feedback {
             font-size: 0.85rem;
@@ -133,17 +156,22 @@
             gap: 10px;
         }
 
-        .full-width {
-            grid-column: span 2;
-        }
+        .full-width { grid-column: span 2; }
 
         input, select, button {
             width: 100%;
-            padding: 12px;
+            padding: 11px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 1rem;
-            background-color: rgba(255, 255, 255, 0.95);
+            font-size: 0.95rem;
+            background-color: rgba(255, 255, 255, 0.98);
+        }
+
+        .btn-row {
+            grid-column: span 2;
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
         }
 
         button.add-btn {
@@ -152,14 +180,29 @@
             border: none;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 4px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
 
+        button.cancel-btn {
+            background-color: #6b7280;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            padding: 11px 16px;
+            display: none;
+        }
+
         .filters {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
             margin-bottom: 16px;
+        }
+
+        .filters input {
+            grid-column: span 2;
         }
 
         .filters input, .filters select {
@@ -172,20 +215,22 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border-radius: 14px;
-            padding: 14px 16px;
+            padding: 14px;
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.12);
             border-left: 5px solid var(--primary);
         }
 
         .item-card.expiring-soon { border-left-color: var(--warning); }
-        .item-card.expired { border-left-color: var(--danger); background-color: rgba(255, 240, 240, 0.94); }
+        .item-card.expired { border-left-color: var(--danger); background-color: rgba(255, 240, 240, 0.95); }
 
-        .item-info h3 { margin: 0 0 4px 0; font-size: 1.05rem; }
-        .item-meta { font-size: 0.85rem; color: #4b5563; }
+        .item-info { flex: 1; min-width: 0; }
+        .item-info h3 { margin: 0 0 6px 0; font-size: 1.02rem; word-wrap: break-word; }
+        .item-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; font-size: 0.8rem; color: #4b5563; }
 
         .badge {
             display: inline-block;
@@ -193,111 +238,295 @@
             color: var(--primary);
             padding: 2px 8px;
             border-radius: 12px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            margin-right: 6px;
         }
 
-        .controls { display: flex; align-items: center; gap: 8px; }
-        .qty-btn {
-            width: 36px; height: 36px; padding: 0; border-radius: 50%;
-            border: 1px solid #d1d5db; background: #ffffff;
-            font-size: 1.2rem; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+        .badge-loc {
+            background: #e0f2fe;
+            color: #0369a1;
         }
-        .qty-display { font-weight: bold; min-width: 55px; text-align: center; font-size: 0.95rem; }
+
+        .controls { display: flex; align-items: center; gap: 6px; }
+        .qty-btn, .icon-btn {
+            width: 34px; height: 34px; padding: 0; border-radius: 50%;
+            border: 1px solid #d1d5db; background: #ffffff;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .icon-btn { font-size: 0.9rem; border-color: #e5e7eb; }
+        .buy-btn {
+            width: auto; padding: 8px 12px; border-radius: 8px;
+            background: var(--success); color: white; border: none;
+            font-size: 0.85rem; font-weight: 600; cursor: pointer;
+        }
+
+        .qty-display { font-weight: bold; min-width: 50px; text-align: center; font-size: 0.9rem; }
         .empty-state {
             background: var(--card); border-radius: 14px; text-align: center;
             color: #4b5563; padding: 30px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.12);
         }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>🥫 Unser Vorratsschrank</h1>
-    <span id="syncStatus" class="sync-status">⏳ Verbinde...</span>
+    <div class="header-top">
+        <h1>🥫 Unser Vorrat</h1>
+        <span id="syncStatus" class="sync-status">⏳ Verbinde...</span>
+    </div>
+    <div class="tabs">
+        <button type="button" id="tabVorratBtn" class="tab-btn active">📦 Vorrat (<span id="vorratCount">0</span>)</button>
+        <button type="button" id="tabEinkaufBtn" class="tab-btn">🛒 Einkauf (<span id="einkaufCount">0</span>)</button>
+    </div>
 </header>
 
 <div class="container">
-    <div class="card">
-        <div class="card-header">
-            <h2>Neuer Artikel</h2>
-            <button type="button" id="toggleScanBtn" class="scan-btn">📷 Scannen</button>
+    <!-- ANSICHT 1: VORRATSSCHRANK -->
+    <div id="viewVorrat">
+        <div class="card" id="formCard">
+            <div class="card-header">
+                <h2 id="formTitle">Neuer Artikel</h2>
+                <button type="button" id="toggleScanBtn" class="scan-btn">📷 Scannen</button>
+            </div>
+
+            <div id="reader-wrapper">
+                <div id="reader"></div>
+            </div>
+            <div id="scan-feedback"></div>
+
+            <form id="addForm" class="form-grid">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="lastScannedBarcode">
+
+                <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten)" required>
+                
+                <input type="number" id="amount" placeholder="Menge" value="1" min="0.1" step="any" required>
+                
+                <select id="unit">
+                    <option value="Stk.">Stück / Packung</option>
+                    <option value="g">Gramm (g)</option>
+                    <option value="kg">Kilogramm (kg)</option>
+                    <option value="ml">Milliliter (ml)</option>
+                    <option value="l">Liter (l)</option>
+                    <option value="Dosen">Dosen / Gläser</option>
+                </select>
+
+                <select id="category">
+                    <option value="Konserven">🥫 Konserven & Gläser</option>
+                    <option value="Trockenwaren">🍝 Nudeln, Reis & Mehl</option>
+                    <option value="Molkerei">🧀 Molkereiprodukte</option>
+                    <option value="ObstGemuese">🥦 Obst & Gemüse</option>
+                    <option value="Gewürze">🧂 Gewürze & Soßen</option>
+                    <option value="Backen">🧁 Backzutaten</option>
+                    <option value="Getränke">🧃 Getränke</option>
+                    <option value="Sonstiges">📦 Sonstiges</option>
+                </select>
+
+                <select id="location">
+                    <option value="Vorratsschrank">🚪 Vorratsschrank</option>
+                    <option value="Kühlschrank">❄️ Kühlschrank</option>
+                    <option value="Gefriertruhe">🧊 Gefriertruhe</option>
+                    <option value="Keller">🏠 Keller</option>
+                    <option value="Obstschale / Küche">🍎 Obstschale / Küche</option>
+                </select>
+
+                <input type="date" id="mhd" class="full-width" title="Mindesthaltbarkeitsdatum">
+
+                <div class="btn-row">
+                    <button type="submit" id="submitBtn" class="add-btn">+ In den Schrank legen</button>
+                    <button type="button" id="cancelEditBtn" class="cancel-btn">Abbrechen</button>
+                </div>
+            </form>
         </div>
 
-        <div id="reader-wrapper">
-            <div id="reader"></div>
-        </div>
-        <div id="scan-feedback"></div>
-
-        <form id="addForm" class="form-grid">
-            <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten)" required>
-            <input type="number" id="amount" placeholder="Menge" value="1" min="0.1" step="any" required>
-            <select id="unit">
-                <option value="Stk.">Stück / Packung</option>
-                <option value="g">Gramm (g)</option>
-                <option value="kg">Kilogramm (kg)</option>
-                <option value="ml">Milliliter (ml)</option>
-                <option value="l">Liter (l)</option>
-                <option value="Dosen">Dosen / Gläser</option>
-            </select>
-            <select id="category">
-                <option value="Konserven">🥫 Konserven & Gläser</option>
-                <option value="Trockenwaren">🍝 Nudeln, Reis & Mehl</option>
-                <option value="Molkerei">🧀 Molkereiprodukte</option>
-                <option value="Gewürze">🧂 Gewürze & Soßen</option>
-                <option value="Backen">🧁 Backzutaten</option>
-                <option value="Getränke">🧃 Getränke</option>
-                <option value="Sonstiges">📦 Sonstiges</option>
-            </select>
-            <input type="date" id="mhd" title="Mindesthaltbarkeitsdatum">
-            <button type="submit" class="add-btn full-width">+ In den Schrank legen</button>
-        </form>
-    </div>
-
-    <div class="filters">
-        <input type="text" id="searchInput" placeholder="🔍 Suchen...">
+        <div class="filters">
+            <input type="text" id="searchInput" placeholder="🔍 Artikel suchen...">
             <select id="filterCategory">
                 <option value="ALLE">Alle Kategorien</option>
                 <option value="Konserven">Konserven</option>
                 <option value="Trockenwaren">Trockenwaren</option>
                 <option value="Molkerei">Molkereiprodukte</option>
+                <option value="ObstGemuese">Obst & Gemüse</option>
                 <option value="Gewürze">Gewürze</option>
                 <option value="Backen">Backen</option>
                 <option value="Getränke">Getränke</option>
                 <option value="Sonstiges">Sonstiges</option>
             </select>
+            <select id="filterLocation">
+                <option value="ALLE">Alle Lagerorte</option>
+                <option value="Vorratsschrank">🚪 Vorratsschrank</option>
+                <option value="Kühlschrank">❄️ Kühlschrank</option>
+                <option value="Gefriertruhe">🧊 Gefriertruhe</option>
+                <option value="Keller">🏠 Keller</option>
+                <option value="Obstschale / Küche">🍎 Obstschale / Küche</option>
+            </select>
+        </div>
+
+        <div id="inventoryList"></div>
     </div>
 
-    <div id="inventoryList"></div>
+    <!-- ANSICHT 2: EINKAUFSLISTE -->
+    <div id="viewEinkauf" class="hidden">
+        <div class="card">
+            <h2>Auf die Einkaufsliste</h2>
+            <form id="shoppingForm" class="form-grid">
+                <input type="text" id="shopName" class="full-width" placeholder="Was fehlt? (z.B. Vollmilch)" required>
+                <input type="text" id="shopNote" class="full-width" placeholder="Notiz / Menge (optional, z.B. 2 Liter)">
+                <button type="submit" class="add-btn full-width">+ Auf die Liste</button>
+            </form>
+        </div>
+
+        <div id="shoppingList"></div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // HIER WIEDER DEINE EIGENEN DATEN AUS FIREBASE EINFÜGEN:
     const firebaseConfig = {
-    apiKey: "AIzaSyA9buBCLmg_S9pypxnyoHu5NaYPhkJzLIo",
-    authDomain: "vorratsschrank-d23ea.firebaseapp.com",
-    projectId: "vorratsschrank-d23ea",
-    storageBucket: "vorratsschrank-d23ea.firebasestorage.app",
-    messagingSenderId: "691274363396",
-    appId: "1:691274363396:web:dfd7e177f8c52c1799bb51"
+      apiKey: "AIzaSyA9buBCLmg_S9pypxnyoHu5NaYPhkJzLIo",
+      authDomain: "vorratsschrank-d23ea.firebaseapp.com",
+      projectId: "vorratsschrank-d23ea",
+      storageBucket: "vorratsschrank-d23ea.firebasestorage.app",
+      messagingSenderId: "691274363396",
+      appId: "1:691274363396:web:dfd7e177f8c52c1799bb51"
     };
+
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const vorratRef = collection(db, "vorrat");
+    const einkaufRef = collection(db, "einkaufsliste");
 
     let inventory = [];
+    let shoppingItems = [];
+
     const form = document.getElementById('addForm');
     const listContainer = document.getElementById('inventoryList');
+    const shoppingContainer = document.getElementById('shoppingList');
     const searchInput = document.getElementById('searchInput');
     const filterCategory = document.getElementById('filterCategory');
+    const filterLocation = document.getElementById('filterLocation');
     const syncStatus = document.getElementById('syncStatus');
 
+    const categoryLabels = {
+        'Konserven': 'Konserven',
+        'Trockenwaren': 'Trockenwaren',
+        'Molkerei': 'Molkereiprodukte',
+        'ObstGemuese': 'Obst & Gemüse',
+        'Gewürze': 'Gewürze',
+        'Backen': 'Backen',
+        'Getränke': 'Getränke',
+        'Sonstiges': 'Sonstiges'
+    };
+
+    // Tab-Steuerung
+    const tabVorratBtn = document.getElementById('tabVorratBtn');
+    const tabEinkaufBtn = document.getElementById('tabEinkaufBtn');
+    const viewVorrat = document.getElementById('viewVorrat');
+    const viewEinkauf = document.getElementById('viewEinkauf');
+
+    tabVorratBtn.addEventListener('click', () => {
+        tabVorratBtn.classList.add('active');
+        tabEinkaufBtn.classList.remove('active');
+        viewVorrat.classList.remove('hidden');
+        viewEinkauf.classList.add('hidden');
+    });
+
+    tabEinkaufBtn.addEventListener('click', () => {
+        tabEinkaufBtn.classList.add('active');
+        tabVorratBtn.classList.remove('active');
+        viewEinkauf.classList.remove('hidden');
+        viewVorrat.classList.add('hidden');
+    });
+
+    // --- AUTOMATISCHE LAGERORT- & KATEGORIE-ERKENNUNG ---
+    function suggestStorageAndCategory(productName, barcodeTags = '') {
+        const text = (productName + ' ' + barcodeTags).toLowerCase();
+
+        // 1. Gefriertruhe (hat immer Vorrang)
+        const freezerWords = ['tk', 'tiefkühl', 'eis', 'pommes', 'kroketten', 'fischstäbchen', 'gefroren', 'frozen', 'ice-cream', 'pizza'];
+        if (freezerWords.some(w => text.includes(w))) {
+            document.getElementById('location').value = 'Gefriertruhe';
+            return;
+        }
+
+        // 2. Obst & Gemüse nach optimalem Lagerort
+        const fridgeProduce = [
+            'salat', 'feldsalat', 'rucola', 'eisberg', 'spinat', 'brokkoli', 'blumenkohl',
+            'karotte', 'möhre', 'radieschen', 'kohlrabi', 'lauch', 'porree', 'spargel',
+            'pilz', 'champignon', 'pfifferling', 'sellerie', 'fenchel', 'rosenkohl', 'weißkohl', 'rotkohl',
+            'erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'brombeer', 'johannisbeer',
+            'kirsche', 'traube', 'weintraube', 'feige', 'frühlingszwiebel'
+        ];
+
+        const cellarProduce = [
+            'kartoffel', 'süßkartoffel', 'zwiebel', 'schalotte', 'knoblauch',
+            'apfel', 'äpfel', 'birne', 'kürbis', 'hokkaido', 'butternut', 'rote bete', 'rübe'
+        ];
+
+        const roomProduce = [
+            'tomate', 'gurke', 'paprika', 'zucchini', 'aubergine', 'avocado',
+            'banane', 'orange', 'mandarine', 'clementine', 'zitrone', 'limette', 'grapefruit',
+            'mango', 'ananas', 'melone', 'wassermelone', 'honigmelone',
+            'pfirsich', 'nektarine', 'aprikose', 'pflaume', 'zwetschge', 'kiwi', 'ingwer', 'basilikum'
+        ];
+
+        if (fridgeProduce.some(w => text.includes(w))) {
+            document.getElementById('category').value = 'ObstGemuese';
+            document.getElementById('location').value = 'Kühlschrank';
+            return;
+        }
+        if (cellarProduce.some(w => text.includes(w))) {
+            document.getElementById('category').value = 'ObstGemuese';
+            document.getElementById('location').value = 'Keller';
+            return;
+        }
+        if (roomProduce.some(w => text.includes(w))) {
+            document.getElementById('category').value = 'ObstGemuese';
+            document.getElementById('location').value = 'Obstschale / Küche';
+            return;
+        }
+
+        // 3. Molkereiprodukte & sonstige Kühlschrank-Waren
+        const dairyWords = ['milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche', 'mozzarella', 'parmesan', 'gouda', 'dairy', 'milk', 'cheese', 'yogurt'];
+        const fridgeWords = ['wurst', 'aufschnitt', 'schinken', 'salami', 'fleisch', 'hack', 'hähnchen', 'pute', 'steak', 'fisch', 'lachs', 'forelle', 'eier', 'hefe', 'blätterteig', 'pesto', 'hummus', 'remoulade', 'mayonnaise', 'meat', 'fish'];
+
+        if (dairyWords.some(w => text.includes(w))) {
+            document.getElementById('location').value = 'Kühlschrank';
+            document.getElementById('category').value = 'Molkerei';
+            return;
+        }
+        if (fridgeWords.some(w => text.includes(w))) {
+            document.getElementById('location').value = 'Kühlschrank';
+            return;
+        }
+
+        // 4. Getränkekisten im Keller
+        const cellarDrinks = ['bier', 'wein', 'sekt', 'kiste', 'kasten', 'mineralwasser', 'sprudel', 'saft'];
+        if (cellarDrinks.some(w => text.includes(w))) {
+            document.getElementById('location').value = 'Keller';
+            document.getElementById('category').value = 'Getränke';
+            return;
+        }
+
+        // 5. Standard: Vorratsschrank
+        document.getElementById('location').value = 'Vorratsschrank';
+    }
+
+    document.getElementById('name').addEventListener('input', (e) => {
+        if (!document.getElementById('editId').value) {
+            suggestStorageAndCategory(e.target.value);
+        }
+    });
+
+    // --- BARCODE SCANNER & EIGENER BARCODE-SPEICHER ---
     const toggleScanBtn = document.getElementById('toggleScanBtn');
     const readerWrapper = document.getElementById('reader-wrapper');
     const scanFeedback = document.getElementById('scan-feedback');
@@ -315,9 +544,7 @@
             try {
                 await html5QrCode.stop();
                 html5QrCode.clear();
-            } catch (err) {
-                console.warn("Fehler beim Stoppen:", err);
-            }
+            } catch (err) {}
         }
         isScanning = false;
         readerWrapper.style.display = 'none';
@@ -326,7 +553,25 @@
     }
 
     async function fetchProductByBarcode(barcode) {
+        document.getElementById('lastScannedBarcode').value = barcode;
         showFeedback(`🔍 Suche Produkt für Code ${barcode}...`);
+
+        // 1. Eigenes Familien-Gedächtnis prüfen
+        try {
+            const customSnap = await getDoc(doc(db, "barcodes", barcode));
+            if (customSnap.exists()) {
+                const c = customSnap.data();
+                document.getElementById('name').value = c.name || '';
+                document.getElementById('amount').value = c.amount || 1;
+                document.getElementById('unit').value = c.unit || 'Stk.';
+                document.getElementById('category').value = c.category || 'Sonstiges';
+                document.getElementById('location').value = c.location || 'Vorratsschrank';
+                showFeedback(`⭐ Aus eigenem Merkzettel geladen: "${c.name}"`);
+                return;
+            }
+        } catch (e) { console.warn(e); }
+
+        // 2. Open Food Facts abfragen
         try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
             const data = await response.json();
@@ -335,38 +580,24 @@
                 const p = data.product;
                 const brand = p.brands ? p.brands.split(',')[0].trim() : '';
                 const prodName = p.product_name_de || p.product_name || '';
-                // Entfernt eventuelle Barcode-Zahlen (8-14 Ziffern) und überflüssige Bindestriche aus dem Namen
                 const rawName = [brand, prodName].filter(Boolean).join(' - ');
                 const fullName = rawName.replace(/\b\d{8,14}\b/g, '').replace(/\s*-\s*$/g, '').replace(/^\s*-\s*/g, '').trim();
-                
-                if (fullName) {
-                    document.getElementById('name').value = fullName;
-                }
+
+                if (fullName) document.getElementById('name').value = fullName;
 
                 if (p.product_quantity && p.product_quantity_unit) {
                     const qty = parseFloat(p.product_quantity);
                     const unitRaw = p.product_quantity_unit.toLowerCase();
                     if (!isNaN(qty)) {
-                        if (unitRaw === 'g') {
-                            document.getElementById('amount').value = qty;
-                            document.getElementById('unit').value = 'g';
-                        } else if (unitRaw === 'kg') {
-                            document.getElementById('amount').value = qty;
-                            document.getElementById('unit').value = 'kg';
-                        } else if (unitRaw === 'ml') {
-                            document.getElementById('amount').value = qty;
-                            document.getElementById('unit').value = 'ml';
-                        } else if (unitRaw === 'l') {
-                            document.getElementById('amount').value = qty;
-                            document.getElementById('unit').value = 'l';
-                        }
+                        if (unitRaw === 'g') { document.getElementById('amount').value = qty; document.getElementById('unit').value = 'g'; }
+                        else if (unitRaw === 'kg') { document.getElementById('amount').value = qty; document.getElementById('unit').value = 'kg'; }
+                        else if (unitRaw === 'ml') { document.getElementById('amount').value = qty; document.getElementById('unit').value = 'ml'; }
+                        else if (unitRaw === 'l') { document.getElementById('amount').value = qty; document.getElementById('unit').value = 'l'; }
                     }
                 }
 
                 const tags = (p.categories_tags || []).join(' ').toLowerCase();
-                if (tags.includes('dairy') || tags.includes('milk') || tags.includes('cheese') || tags.includes('yogurt') || tags.includes('butter')) {
-                    document.getElementById('category').value = 'Molkerei';
-                } else if (tags.includes('beverage') || tags.includes('drink') || tags.includes('water') || tags.includes('juice')) {
+                if (tags.includes('beverage') || tags.includes('drink') || tags.includes('water') || tags.includes('juice')) {
                     document.getElementById('category').value = 'Getränke';
                 } else if (tags.includes('pasta') || tags.includes('rice') || tags.includes('flour') || tags.includes('cereal')) {
                     document.getElementById('category').value = 'Trockenwaren';
@@ -374,23 +605,22 @@
                     document.getElementById('category').value = 'Gewürze';
                 } else if (tags.includes('canned') || tags.includes('preserved') || tags.includes('jar')) {
                     document.getElementById('category').value = 'Konserven';
+                } else if (tags.includes('fruit') || tags.includes('vegetable')) {
+                    document.getElementById('category').value = 'ObstGemuese';
                 }
 
-                showFeedback(`✅ Gefunden: "${fullName || barcode}" – bitte kurz prüfen!`);
+                suggestStorageAndCategory(fullName, tags);
+                showFeedback(`✅ Gefunden: "${fullName || barcode}" – bitte prüfen!`);
             } else {
-                showFeedback(`⚠️ Code ${barcode} nicht in Datenbank gefunden. Bitte manuell eingeben.`, true);
+                showFeedback(`⚠️ Unbekannter Code (${barcode}). Einmal eingeben – die App merkt ihn sich für die Zukunft!`, true);
             }
         } catch (error) {
-            showFeedback('❌ Fehler bei der Produktabfrage (Offline?).', true);
+            showFeedback('❌ Keine Internetverbindung für Barcode-Suche.', true);
         }
     }
 
     toggleScanBtn.addEventListener('click', async () => {
-        if (isScanning) {
-            await stopScanner();
-            return;
-        }
-
+        if (isScanning) { await stopScanner(); return; }
         readerWrapper.style.display = 'block';
         toggleScanBtn.textContent = '⏹️ Stopp';
         toggleScanBtn.classList.add('active');
@@ -400,10 +630,7 @@
         try {
             await html5QrCode.start(
                 { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 150 }
-                },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
                 async (decodedText) => {
                     await stopScanner();
                     if (navigator.vibrate) navigator.vibrate(100);
@@ -414,51 +641,111 @@
             isScanning = true;
         } catch (err) {
             await stopScanner();
-            showFeedback('❌ Kamera konnte nicht gestartet werden (Berechtigung erteilt?).', true);
+            showFeedback('❌ Kamera konnte nicht gestartet werden.', true);
         }
     });
 
+    // --- FIREBASE ECHTZEIT-SYNCHRONISATION ---
     onSnapshot(vorratRef, (snapshot) => {
-        inventory = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('vorratCount').textContent = inventory.length;
         syncStatus.textContent = "🟢 Live";
         renderList();
-    }, (error) => {
-        console.error(error);
+    }, () => {
         syncStatus.textContent = "🔴 Offline / Fehler";
     });
 
+    onSnapshot(einkaufRef, (snapshot) => {
+        shoppingItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('einkaufCount').textContent = shoppingItems.length;
+        renderShoppingList();
+    });
+
+    // --- FORMULAR SPEICHERN (NEU & BEARBEITEN) ---
+    function resetFormState() {
+        form.reset();
+        document.getElementById('editId').value = '';
+        document.getElementById('lastScannedBarcode').value = '';
+        document.getElementById('amount').value = 1;
+        document.getElementById('formTitle').textContent = 'Neuer Artikel';
+        document.getElementById('submitBtn').textContent = '+ In den Schrank legen';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        scanFeedback.style.display = 'none';
+    }
+
+    document.getElementById('cancelEditBtn').addEventListener('click', resetFormState);
+
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const newItem = {
+        const editId = document.getElementById('editId').value;
+        const scannedBarcode = document.getElementById('lastScannedBarcode').value;
+
+        const itemData = {
             name: document.getElementById('name').value.trim(),
             amount: parseFloat(document.getElementById('amount').value),
             unit: document.getElementById('unit').value,
             category: document.getElementById('category').value,
+            location: document.getElementById('location').value,
             mhd: document.getElementById('mhd').value
         };
 
-        form.reset();
-        document.getElementById('amount').value = 1;
-        scanFeedback.style.display = 'none';
-        await addDoc(vorratRef, newItem);
+        if (scannedBarcode) {
+            await setDoc(doc(db, "barcodes", scannedBarcode), {
+                name: itemData.name,
+                amount: itemData.amount,
+                unit: itemData.unit,
+                category: itemData.category,
+                location: itemData.location
+            });
+        }
+
+        resetFormState();
+
+        if (editId) {
+            await updateDoc(doc(db, "vorrat", editId), itemData);
+        } else {
+            await addDoc(vorratRef, itemData);
+        }
     });
+
+    window.editItem = function(id) {
+        const item = inventory.find(i => i.id === id);
+        if (!item) return;
+
+        document.getElementById('editId').value = item.id;
+        document.getElementById('name').value = item.name;
+        document.getElementById('amount').value = item.amount;
+        document.getElementById('unit').value = item.unit;
+        document.getElementById('category').value = item.category;
+        document.getElementById('location').value = item.location || 'Vorratsschrank';
+        document.getElementById('mhd').value = item.mhd || '';
+
+        document.getElementById('formTitle').textContent = '✏️ Artikel bearbeiten';
+        document.getElementById('submitBtn').textContent = '💾 Änderungen speichern';
+        document.getElementById('cancelEditBtn').style.display = 'block';
+        document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+    };
 
     window.changeAmount = async function(id, delta) {
         const item = inventory.find(i => i.id === id);
         if (!item) return;
 
-        const step = (item.unit === 'g' || item.unit === 'ml') ? 50 : ((item.unit === 'kg' || item.unit === 'ml') ? 0.5 : 1);
+        const step = (item.unit === 'g' || item.unit === 'ml') ? 50 : ((item.unit === 'kg' || item.unit === 'l') ? 0.5 : 1);
         const newAmount = Math.round((item.amount + (delta * step)) * 10) / 10;
         const itemDoc = doc(db, "vorrat", id);
 
         if (newAmount <= 0) {
-            if (confirm(`"${item.name}" ist aufgebraucht. Aus der Liste entfernen?`)) {
+            if (confirm(`"${item.name}" ist leer. Aus dem Vorrat löschen und auf die Einkaufsliste setzen?`)) {
+                await addDoc(einkaufRef, {
+                    name: item.name,
+                    note: `Nachkauf (${categoryLabels[item.category] || item.category})`,
+                    category: item.category,
+                    location: item.location || 'Vorratsschrank',
+                    unit: item.unit
+                });
                 await deleteDoc(itemDoc);
-            } else {
-                await updateDoc(itemDoc, { amount: 0 });
+            } else if (confirm(`Nur aus dem Vorrat löschen (ohne Einkaufsliste)?`)) {
+                await deleteDoc(itemDoc);
             }
         } else {
             await updateDoc(itemDoc, { amount: newAmount });
@@ -481,10 +768,14 @@
     function renderList() {
         const searchTerm = searchInput.value.toLowerCase();
         const selectedCat = filterCategory.value;
+        const selectedLoc = filterLocation.value;
+
         let filtered = inventory.filter(item => {
             const matchesName = item.name.toLowerCase().includes(searchTerm);
             const matchesCat = selectedCat === 'ALLE' || item.category === selectedCat;
-            return matchesName && matchesCat;
+            const itemLoc = item.location || 'Vorratsschrank';
+            const matchesLoc = selectedLoc === 'ALLE' || itemLoc === selectedLoc;
+            return matchesName && matchesCat && matchesLoc;
         });
 
         filtered.sort((a, b) => {
@@ -501,17 +792,21 @@
 
         filtered.forEach(item => {
             const mhdInfo = getMhdStatus(item.mhd);
+            const locText = item.location || 'Vorratsschrank';
+            const catText = categoryLabels[item.category] || item.category;
             const card = document.createElement('div');
             card.className = `item-card ${mhdInfo.cssClass}`;
             card.innerHTML = `
                 <div class="item-info">
                     <h3>${item.name}</h3>
                     <div class="item-meta">
-                        <span class="badge">${item.category}</span>
+                        <span class="badge">${catText}</span>
+                        <span class="badge badge-loc">📍 ${locText}</span>
                         <span>${mhdInfo.text}</span>
                     </div>
                 </div>
                 <div class="controls">
+                    <button class="icon-btn" onclick="editItem('${item.id}')" title="Bearbeiten">✏️</button>
                     <button class="qty-btn" onclick="changeAmount('${item.id}', -1)">-</button>
                     <span class="qty-display">${item.amount} ${item.unit}</span>
                     <button class="qty-btn" onclick="changeAmount('${item.id}', 1)">+</button>
@@ -521,8 +816,60 @@
         });
     }
 
+    // --- EINKAUFSLISTE LOGIK ---
+    document.getElementById('shoppingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const name = document.getElementById('shopName').value.trim();
+        const note = document.getElementById('shopNote').value.trim();
+        e.target.reset();
+        await addDoc(einkaufRef, { name, note, category: 'Sonstiges', location: 'Vorratsschrank', unit: 'Stk.' });
+    });
+
+    window.finishShoppingItem = async function(id, moveToPantry) {
+        const item = shoppingItems.find(i => i.id === id);
+        if (!item) return;
+
+        await deleteDoc(doc(db, "einkaufsliste", id));
+
+        if (moveToPantry) {
+            tabVorratBtn.click();
+            document.getElementById('name').value = item.name;
+            document.getElementById('category').value = item.category || 'Sonstiges';
+            document.getElementById('location').value = item.location || 'Vorratsschrank';
+            document.getElementById('unit').value = item.unit || 'Stk.';
+            suggestStorageAndCategory(item.name);
+            showFeedback(`🛍️ "${item.name}" eingekauft! Jetzt nur noch Menge/MHD prüfen und speichern.`);
+            document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    function renderShoppingList() {
+        shoppingContainer.innerHTML = '';
+        if (shoppingItems.length === 0) {
+            shoppingContainer.innerHTML = '<div class="empty-state">Die Einkaufsliste ist leer! 🎉</div>';
+            return;
+        }
+
+        shoppingItems.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'item-card';
+            card.innerHTML = `
+                <div class="item-info">
+                    <h3>${item.name}</h3>
+                    ${item.note ? `<div class="item-meta">${item.note}</div>` : ''}
+                </div>
+                <div class="controls">
+                    <button class="buy-btn" onclick="finishShoppingItem('${item.id}', true)" title="Gekauft & in den Vorrat übernehmen">✓ In Vorrat</button>
+                    <button class="icon-btn" onclick="finishShoppingItem('${item.id}', false)" title="Nur abhaken / löschen">🗑️</button>
+                </div>
+            `;
+            shoppingContainer.appendChild(card);
+        });
+    }
+
     searchInput.addEventListener('input', renderList);
     filterCategory.addEventListener('change', renderList);
+    filterLocation.addEventListener('change', renderList);
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js');
