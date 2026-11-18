@@ -7,6 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#c2410c">
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --primary: #c2410c;
@@ -17,6 +18,7 @@
             --danger: #d32f2f;
             --warning: #ed6c02;
             --success: #15803d;
+            --opened: #7c3aed;
         }
 
         * {
@@ -27,7 +29,7 @@
         body {
             margin: 0;
             color: var(--text);
-            padding-bottom: 50px;
+            padding-bottom: 95px;
             min-height: 100vh;
             background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)), var(--bg-image);
             background-size: cover;
@@ -66,7 +68,7 @@
 
         .tabs {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .tab-btn {
@@ -75,11 +77,12 @@
             color: white;
             border: none;
             border-radius: 10px 10px 0 0;
-            padding: 10px;
-            font-size: 0.95rem;
+            padding: 10px 6px;
+            font-size: 0.88rem;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
+            white-space: nowrap;
         }
 
         .tab-btn.active {
@@ -93,7 +96,6 @@
             padding: 14px;
         }
 
-        /* Einklapp-Button für Neues Formular */
         .toggle-form-btn {
             width: 100%;
             background-color: var(--primary);
@@ -127,6 +129,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
+            gap: 8px;
         }
 
         .card-header h2 {
@@ -147,6 +150,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
 
         .scan-btn.active { background-color: var(--danger); }
@@ -161,12 +165,71 @@
 
         #reader { width: 100%; }
 
-        #scan-feedback {
-            font-size: 0.85rem;
+        #scan-feedback, #mhdHint, #ocrFeedback {
+            font-size: 0.82rem;
             color: var(--primary);
             font-weight: 600;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: none;
+        }
+
+        #mhdHint {
+            color: #0369a1;
+            margin-top: -2px;
+            grid-column: span 2;
+        }
+
+        /* Kombiniertes Text- + Kalender-Feld für das MHD */
+        .mhd-combo {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .mhd-combo input[type="text"] {
+            padding-right: 40px;
+        }
+
+        .mhd-cal-trigger {
+            position: absolute;
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.05rem;
+            overflow: hidden;
+        }
+
+        .mhd-cal-trigger input[type="date"] {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            padding: 0;
+            border: none;
+        }
+
+        #mhdParsedPreview {
+            font-size: 0.72rem;
+            color: var(--success);
+            font-weight: 600;
+            min-height: 15px;
+            padding-left: 2px;
+        }
+
+        #mhdParsedPreview.invalid {
+            color: var(--danger);
         }
 
         .form-grid {
@@ -177,7 +240,7 @@
 
         .full-width { grid-column: span 2; }
 
-        input, select, button {
+        input, select, button, textarea {
             width: 100%;
             padding: 11px;
             border: 1px solid #d1d5db;
@@ -225,7 +288,6 @@
             padding: 11px 16px;
         }
 
-        /* Such- & Filter-Bereich */
         .search-box-wrapper {
             position: relative;
             margin-bottom: 10px;
@@ -256,7 +318,6 @@
             justify-content: center;
         }
 
-        /* "Ist es da?" Ergebnis-Banner */
         #quickCheckBanner {
             display: none;
             background: #eff6ff;
@@ -291,12 +352,12 @@
             white-space: nowrap;
         }
 
-        /* Schnell-Filter Chips */
         .chip-row {
             display: flex;
             gap: 8px;
             margin-bottom: 10px;
             overflow-x: auto;
+            padding-bottom: 2px;
         }
 
         .chip-btn {
@@ -330,7 +391,6 @@
             border: none;
         }
 
-        /* Artikelliste */
         .item-card {
             background: var(--card);
             backdrop-filter: blur(8px);
@@ -341,11 +401,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.12);
             border-left: 5px solid var(--primary);
         }
 
+        .item-card.opened-item { border-left-color: var(--opened); background-color: rgba(245, 243, 255, 0.96); }
         .item-card.low-stock { border-left-color: #eab308; background-color: rgba(254, 252, 232, 0.95); }
         .item-card.expiring-soon { border-left-color: var(--warning); }
         .item-card.expired { border-left-color: var(--danger); background-color: rgba(255, 240, 240, 0.95); }
@@ -366,30 +427,33 @@
 
         .badge-loc { background: #e0f2fe; color: #0369a1; }
         .badge-low { background: #fef08a; color: #854d0e; }
+        .badge-opened { background: #ede9fe; color: var(--opened); }
+        .badge-ready { background: #dcfce7; color: var(--success); }
 
-        .controls { display: flex; align-items: center; gap: 5px; }
+        .controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
         .qty-btn, .icon-btn {
-            width: 34px; height: 34px; padding: 0; border-radius: 50%;
+            width: 32px; height: 32px; padding: 0; border-radius: 50%;
             border: 1px solid #d1d5db; background: #ffffff;
-            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            font-size: 1.05rem; font-weight: bold; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
 
-        .icon-btn { font-size: 0.9rem; border-color: #e5e7eb; }
+        .icon-btn { font-size: 0.88rem; border-color: #e5e7eb; }
+        .icon-btn.opened-active { background: #ede9fe; border-color: var(--opened); color: var(--opened); }
+
         .buy-btn {
             width: auto; padding: 8px 12px; border-radius: 8px;
             background: var(--success); color: white; border: none;
             font-size: 0.85rem; font-weight: 600; cursor: pointer;
         }
 
-        .qty-display { font-weight: bold; min-width: 50px; text-align: center; font-size: 0.9rem; }
+        .qty-display { font-weight: bold; min-width: 46px; text-align: center; font-size: 0.88rem; }
         .empty-state {
             background: var(--card); border-radius: 14px; text-align: center;
             color: #4b5563; padding: 30px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.12);
         }
 
-        /* Supermarkt-Abteilungs-Überschrift */
         .dept-header {
             background: rgba(31, 41, 55, 0.85);
             color: white;
@@ -401,24 +465,227 @@
             letter-spacing: 0.3px;
         }
 
-        /* Werkzeuge unten (Rezepte & Backup) */
-        .tools-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
+        .week-plan-box {
+            background: rgba(255, 251, 235, 0.96);
+            border: 2px solid #f59e0b;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        .tool-btn {
+        .week-plan-box h3 {
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+            color: #92400e;
+        }
+
+        .week-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .week-chip {
+            background: #fef3c7;
+            color: #78350f;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .recipe-card {
             background: var(--card);
-            color: #1f2937;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            padding: 11px;
-            font-size: 0.85rem;
+            border-radius: 14px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+            border-left: 5px solid transparent;
+        }
+
+        .recipe-card.planned-week {
+            border-left-color: #f59e0b;
+        }
+
+        .recipe-card.all-ready:not(.planned-week) {
+            border-left-color: var(--success);
+        }
+
+        .recipe-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .recipe-header h3 {
+            margin: 0;
+            font-size: 1.08rem;
+            flex: 1;
+        }
+
+        .ing-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .ing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88rem;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(243, 244, 246, 0.8);
+            gap: 8px;
+        }
+
+        .ing-row.ok { border-left: 4px solid var(--success); }
+        .ing-row.warn { border-left: 4px solid var(--warning); }
+        .ing-row.missing { border-left: 4px solid var(--danger); }
+
+        .mini-shop-btn {
+            width: auto;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .cook-done-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .ing-builder-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .import-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .import-btn {
+            background: #1f2937;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .floating-bubbles {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bubble-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: #1f2937;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: transform 0.15s;
+        }
+
+        .bubble-btn:active {
+            transform: scale(0.92);
+        }
+
+        .bubble-btn.stats {
+            background: var(--primary);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .stat-highlight {
+            background: var(--primary-light);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin: 12px 0;
+        }
+
+        .stat-highlight strong {
+            font-size: 1.6rem;
+            color: var(--primary);
+            display: block;
+        }
+
+        .rank-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.92rem;
         }
 
         .hidden { display: none !important; }
@@ -434,16 +701,15 @@
     <div class="tabs">
         <button type="button" id="tabVorratBtn" class="tab-btn active">📦 Vorrat (<span id="vorratCount">0</span>)</button>
         <button type="button" id="tabEinkaufBtn" class="tab-btn">🛒 Einkauf (<span id="einkaufCount">0</span>)</button>
+        <button type="button" id="tabRezepteBtn" class="tab-btn">📖 Rezepte (<span id="rezepteCount">0</span>)</button>
     </div>
 </header>
 
 <div class="container">
     <!-- ANSICHT 1: VORRATSSCHRANK -->
     <div id="viewVorrat">
-        <!-- Einklapp-Button -->
         <button type="button" id="toggleFormBtn" class="toggle-form-btn">➕ Artikel einräumen / 📷 Scannen</button>
 
-        <!-- Einklappbares Formular -->
         <div class="card hidden" id="formCard">
             <div class="card-header">
                 <h2 id="formTitle">Neuer Artikel</h2>
@@ -458,8 +724,9 @@
             <form id="addForm" class="form-grid">
                 <input type="hidden" id="editId">
                 <input type="hidden" id="lastScannedBarcode">
+                <input type="hidden" id="mhdIsoValue">
 
-                <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten)" required>
+                <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten, Hackfleisch, Äpfel)" required>
                 
                 <div class="field-group">
                     <span class="field-label">Aktuelle Menge</span>
@@ -484,6 +751,7 @@
                         <option value="Konserven">🥫 Konserven & Gläser</option>
                         <option value="Trockenwaren">🍝 Nudeln, Reis & Mehl</option>
                         <option value="Molkerei">🧀 Molkereiprodukte</option>
+                        <option value="FleischFisch">🥩 Fleisch & Fisch</option>
                         <option value="ObstGemuese">🥦 Obst & Gemüse</option>
                         <option value="Gewürze">🧂 Gewürze & Soßen</option>
                         <option value="Backen">🧁 Backzutaten</option>
@@ -504,14 +772,23 @@
                 </div>
 
                 <div class="field-group">
-                    <span class="field-label">Mindesthaltbarkeit (MHD)</span>
-                    <input type="date" id="mhd" title="Mindesthaltbarkeitsdatum">
+                    <span class="field-label">MHD (tippen oder 📅)</span>
+                    <div class="mhd-combo">
+                        <input type="text" id="mhd" inputmode="numeric" placeholder="05/28 / 15.08.27" autocomplete="off">
+                        <div class="mhd-cal-trigger" title="Kalender öffnen">
+                            <span>📅</span>
+                            <input type="date" id="mhdCalendar" aria-label="Datum im Kalender wählen">
+                        </div>
+                    </div>
+                    <span id="mhdParsedPreview"></span>
                 </div>
 
                 <div class="field-group">
                     <span class="field-label">Mindestbestand (Alarm)</span>
                     <input type="number" id="minAmount" placeholder="Optional (z.B. 1)" min="0" step="any">
                 </div>
+
+                <div id="mhdHint"></div>
 
                 <div class="btn-row">
                     <button type="submit" id="submitBtn" class="add-btn">+ In den Schrank legen</button>
@@ -520,20 +797,18 @@
             </form>
         </div>
 
-        <!-- Sofortsuche: "Haben wir das noch?" -->
         <div class="search-box-wrapper">
             <input type="text" id="searchInput" placeholder="🔍 Vorrat prüfen: Haben wir noch...?">
             <button type="button" id="clearSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
         </div>
 
-        <!-- Sofort-Antwort auf die Suche -->
         <div id="quickCheckBanner"></div>
 
-        <!-- Schnell-Filter Chips -->
         <div class="chip-row">
             <button type="button" id="chipAll" class="chip-btn active">Alle</button>
+            <button type="button" id="chipOpened" class="chip-btn">🔓 Angebrochen</button>
             <button type="button" id="chipExpiring" class="chip-btn">⏳ Bald fällig</button>
-            <button type="button" id="chipLow" class="chip-btn">📉 Knapp (Mindestbestand)</button>
+            <button type="button" id="chipLow" class="chip-btn">📉 Knapp</button>
         </div>
 
         <div class="filters">
@@ -542,9 +817,10 @@
                 <option value="Konserven">🥫 Konserven</option>
                 <option value="Trockenwaren">🍝 Trockenwaren</option>
                 <option value="Molkerei">🧀 Molkereiprodukte</option>
+                <option value="FleischFisch">🥩 Fleisch & Fisch</option>
                 <option value="ObstGemuese">🥦 Obst & Gemüse</option>
                 <option value="Gewürze">🧂 Gewürze</option>
-                <option value="Backen">🧁 Backen</option>
+                <option value="Backen">🧁 Backzutaten</option>
                 <option value="Getränke">🧃 Getränke</option>
                 <option value="Sonstiges">📦 Sonstiges</option>
             </select>
@@ -559,22 +835,20 @@
         </div>
 
         <div id="inventoryList"></div>
-
-        <!-- Werkzeuge unten -->
-        <div class="tools-bar">
-            <button type="button" id="recipeBtn" class="tool-btn">🍳 Kochideen (Reste)</button>
-            <button type="button" id="exportCsvBtn" class="tool-btn">📥 CSV-Backup</button>
-        </div>
     </div>
 
-    <!-- ANSICHT 2:  (NACH SUPERMARKT-ABTEILUNGEN SORTIERT) -->
+    <!-- ANSICHT 2: EINKAUFSLISTE -->
     <div id="viewEinkauf" class="hidden">
         <div class="card">
-            <h2>Auf die </h2>
+            <div class="card-header">
+                <h2>Auf die Einkaufsliste</h2>
+                <button type="button" id="shareShoppingBtn" class="scan-btn" title="Liste teilen oder für WhatsApp kopieren">📤 Teilen</button>
+            </div>
             <form id="shoppingForm" class="form-grid">
                 <input type="text" id="shopName" class="full-width" placeholder="Was fehlt? (z.B. Vollmilch)" required>
                 <select id="shopCategory">
                     <option value="ObstGemuese">🥦 Obst & Gemüse</option>
+                    <option value="FleischFisch">🥩 Fleisch & Fisch</option>
                     <option value="Molkerei">🧀 Molkereiprodukte</option>
                     <option value="Konserven">🥫 Konserven & Gläser</option>
                     <option value="Trockenwaren">🍝 Nudeln, Reis & Mehl</option>
@@ -590,11 +864,82 @@
 
         <div id="shoppingList"></div>
     </div>
+
+    <!-- ANSICHT 3: REZEPTE, WOCHENPLAN & VORRATS-AMPEL -->
+    <div id="viewRezepte" class="hidden">
+        <div id="weekPlanContainer"></div>
+
+        <button type="button" id="toggleRecipeFormBtn" class="toggle-form-btn">➕ Eigenes Rezept speichern</button>
+
+        <div class="card hidden" id="recipeFormCard">
+            <div class="card-header">
+                <h2 id="recipeFormTitle">Neues Rezept anlegen</h2>
+                <button type="button" id="closeRecipeFormBtn" class="scan-btn active">✕ Schließen</button>
+            </div>
+
+            <div class="import-bar">
+                <button type="button" id="pasteRecipeBtn" class="import-btn">📋 Aus Zwischenablage</button>
+                <button type="button" id="ocrPhotoBtn" class="import-btn">📷 Rezept abfotografieren</button>
+                <input type="file" id="ocrFileInput" accept="image/*" capture="environment" class="hidden">
+            </div>
+            <div id="ocrFeedback"></div>
+
+            <form id="recipeForm">
+                <input type="hidden" id="editRecipeId">
+                <input type="text" id="recTitle" placeholder="Rezeptname (z.B. Spaghetti Bolognese)" style="margin-bottom:10px;" required>
+                <div class="field-label" style="margin-bottom:6px;">Zutaten (für automatischen Vorrats-Check & Abzug):</div>
+                <div id="ingredientRows"></div>
+                <button type="button" id="addIngRowBtn" class="chip-btn" style="margin: 6px 0 12px 0; background:#e5e7eb;">+ Weitere Zutat</button>
+                <textarea id="recNotes" rows="3" placeholder="Zubereitungsschritte / Notizen (optional)" style="margin-bottom:10px;"></textarea>
+                <button type="submit" id="saveRecipeBtn" class="add-btn">💾 Rezept speichern</button>
+            </form>
+        </div>
+
+        <!-- REZEPT-SUCHE & FILTER-CHIPS -->
+        <div class="search-box-wrapper">
+            <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Nudeln, Hack...)">
+            <button type="button" id="clearRecipeSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
+        </div>
+
+        <div class="chip-row">
+            <button type="button" id="recChipAll" class="chip-btn active">Alle</button>
+            <button type="button" id="recChipReady" class="chip-btn">✅ Sofort kochbar</button>
+            <button type="button" id="recChipWeek" class="chip-btn">📌 Wochenplan</button>
+            <button type="button" id="recChipMissing" class="chip-btn">⚠️ Etwas fehlt</button>
+        </div>
+
+        <div style="margin-bottom:12px;">
+            <button type="button" id="aiRestPromptBtn" class="chip-btn" style="width:100%; padding:10px; font-size:0.88rem;">🍳 Kochideen-Anfrage für bald ablaufende Vorräte kopieren</button>
+        </div>
+
+        <div id="recipesList"></div>
+    </div>
+</div>
+
+<!-- SCHWEBENDE MINI-BUBBLES UNTEN RECHTS -->
+<div class="floating-bubbles">
+    <button type="button" id="openStatsBtn" class="bubble-btn stats" title="Verbrauchs-Statistik & Jahresrückblick">📊</button>
+    <button type="button" id="exportCsvBtn" class="bubble-btn" title="Vorrat als CSV-Backup herunterladen">📥</button>
+</div>
+
+<!-- STATISTIK MODAL (JAHRESRÜCKBLICK) -->
+<div id="statsModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="card-header">
+            <h2>🏆 Unser Vorrats-Rückblick</h2>
+            <button type="button" id="closeStatsBtn" class="icon-btn">✕</button>
+        </div>
+        <div class="field-group">
+            <span class="field-label">Kalenderjahr auswählen</span>
+            <select id="statsYearSelect"></select>
+        </div>
+        <div id="statsContent"></div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA9buBCLmg_S9pypxnyoHu5NaYPhkJzLIo",
@@ -605,47 +950,218 @@
         appId: "1:691274363396:web:dfd7e177f8c52c1799bb51"
     };
 
+    const SECRET_HOUSEHOLD_ID = "Carsebama_200825";
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const vorratRef = collection(db, "haushalte", "Carsebama_200825", "vorrat");
-    const einkaufRef = collection(db, "haushalte", "Carsebama_200825", "einkaufsliste");
-    
+    const vorratRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat");
+    const einkaufRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste");
+    const rezepteRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte");
+    const statsRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "statistik");
+
     let inventory = [];
     let shoppingItems = [];
-    let activeQuickFilter = 'ALL'; // 'ALL' | 'EXPIRING' | 'LOW'
+    let recipes = [];
+    let yearlyStats = {};
+    let activeQuickFilter = 'ALL';
+    let activeRecipeFilter = 'ALL';
+    let userTouchedMhd = false;
 
     const form = document.getElementById('addForm');
     const formCard = document.getElementById('formCard');
     const toggleFormBtn = document.getElementById('toggleFormBtn');
     const listContainer = document.getElementById('inventoryList');
     const shoppingContainer = document.getElementById('shoppingList');
+    const recipesContainer = document.getElementById('recipesList');
+    const weekPlanContainer = document.getElementById('weekPlanContainer');
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const recipeSearchInput = document.getElementById('recipeSearchInput');
+    const clearRecipeSearchBtn = document.getElementById('clearRecipeSearchBtn');
     const quickCheckBanner = document.getElementById('quickCheckBanner');
     const filterCategory = document.getElementById('filterCategory');
     const filterLocation = document.getElementById('filterLocation');
     const syncStatus = document.getElementById('syncStatus');
+    const mhdInput = document.getElementById('mhd');
+    const mhdCalendar = document.getElementById('mhdCalendar');
+    const mhdIsoValue = document.getElementById('mhdIsoValue');
+    const mhdHint = document.getElementById('mhdHint');
+    const mhdParsedPreview = document.getElementById('mhdParsedPreview');
 
     const categoryLabels = {
         'ObstGemuese': '🥦 Obst & Gemüse',
+        'FleischFisch': '🥩 Fleisch & Fisch',
         'Molkerei': '🧀 Molkereiprodukte',
         'Konserven': '🥫 Konserven & Gläser',
         'Trockenwaren': '🍝 Nudeln, Reis & Mehl',
-                        'Gewürze': '🧂 Gewürze & Soßen',
+        'Gewürze': '🧂 Gewürze & Soßen',
         'Backen': '🧁 Backzutaten',
         'Getränke': '🧃 Getränke',
         'Sonstiges': '📦 Sonstiges'
     };
 
-    // Reihenfolge im Supermarkt für die Einkaufsliste
     const supermarketOrder = [
-        'ObstGemuese', 'Molkerei', 'Konserven', 'Trockenwaren', 'Gewürze', 'Backen', 'Getränke', 'Sonstiges'
+        'ObstGemuese', 'FleischFisch', 'Molkerei', 'Konserven', 'Trockenwaren', 'Gewürze', 'Backen', 'Getränke', 'Sonstiges'
     ];
 
-    // Einklappbares Formular steuern
+    // --- KOMBINIERTES MHD-SYSTEM (TEXTFELD + KALENDER SYNCHRON) ---
+    function parseFlexibleDateToIso(rawStr) {
+        const val = (rawStr || '').trim();
+        if (!val) return '';
+        if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+
+        const expandYear = (yStr) => yStr.length === 2 ? 2000 + parseInt(yStr, 10) : parseInt(yStr, 10);
+        const isValidDate = (y, m, d) => {
+            if (m < 1 || m > 12 || d < 1 || d > 31 || y < 2000 || y > 2100) return false;
+            const dt = new Date(y, m - 1, d);
+            return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+        };
+        const toIso = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+        const parts = val.split(/[./-]+/).filter(Boolean);
+        if (parts.length === 2) {
+            const m = parseInt(parts[0], 10);
+            const y = expandYear(parts[1]);
+            if (m >= 1 && m <= 12 && y >= 2000 && y <= 2100) {
+                const lastDay = new Date(y, m, 0).getDate();
+                return toIso(y, m, lastDay);
+            }
+            return null;
+        }
+        if (parts.length === 3) {
+            const d = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10);
+            const y = expandYear(parts[2]);
+            return isValidDate(y, m, d) ? toIso(y, m, d) : null;
+        }
+
+        if (/^\d+$/.test(val)) {
+            if (val.length === 4) {
+                const m = parseInt(val.slice(0, 2), 10);
+                const y = expandYear(val.slice(2, 4));
+                if (m >= 1 && m <= 12) {
+                    const lastDay = new Date(y, m, 0).getDate();
+                    return toIso(y, m, lastDay);
+                }
+            } else if (val.length === 6) {
+                const mFirst = parseInt(val.slice(0, 2), 10);
+                const yFour = parseInt(val.slice(2, 6), 10);
+                if (mFirst >= 1 && mFirst <= 12 && yFour >= 2020 && yFour <= 2099) {
+                    const lastDay = new Date(yFour, mFirst, 0).getDate();
+                    return toIso(yFour, mFirst, lastDay);
+                }
+                const d = parseInt(val.slice(0, 2), 10);
+                const m = parseInt(val.slice(2, 4), 10);
+                const y = expandYear(val.slice(4, 6));
+                if (isValidDate(y, m, d)) return toIso(y, m, d);
+            } else if (val.length === 8) {
+                const d = parseInt(val.slice(0, 2), 10);
+                const m = parseInt(val.slice(2, 4), 10);
+                const y = parseInt(val.slice(4, 8), 10);
+                if (isValidDate(y, m, d)) return toIso(y, m, d);
+            }
+        }
+        return null;
+    }
+
+    function syncMhdStateFromText() {
+        const raw = mhdInput.value.trim();
+        if (!raw) {
+            mhdIsoValue.value = '';
+            mhdCalendar.value = '';
+            mhdParsedPreview.textContent = '';
+            mhdParsedPreview.classList.remove('invalid');
+            return;
+        }
+        const iso = parseFlexibleDateToIso(raw);
+        if (iso) {
+            mhdIsoValue.value = iso;
+            mhdCalendar.value = iso;
+            const [y, m, d] = iso.split('-');
+            mhdParsedPreview.textContent = `✓ Gültig bis ${d}.${m}.${y}`;
+            mhdParsedPreview.classList.remove('invalid');
+        } else {
+            mhdIsoValue.value = '';
+            mhdParsedPreview.textContent = 'Format: z.B. 05/28 oder 15.08.27';
+            mhdParsedPreview.classList.add('invalid');
+        }
+    }
+
+    mhdInput.addEventListener('input', (e) => {
+        userTouchedMhd = true;
+        mhdHint.style.display = 'none';
+
+        if (e.inputType && e.inputType.startsWith('delete')) {
+            syncMhdStateFromText();
+            return;
+        }
+
+        const digitsOnly = mhdInput.value.replace(/\D/g, '');
+        if (/^\d+$/.test(mhdInput.value)) {
+            if (digitsOnly.length === 4) {
+                const m = parseInt(digitsOnly.slice(0, 2), 10);
+                const secondPair = parseInt(digitsOnly.slice(2, 4), 10);
+                if (m >= 1 && m <= 12 && secondPair > 12) {
+                    mhdInput.value = `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(2, 4)}`;
+                }
+            } else if (digitsOnly.length === 6) {
+                const yFour = parseInt(digitsOnly.slice(2, 6), 10);
+                if (yFour >= 2020 && yFour <= 2099) {
+                    mhdInput.value = `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(2, 6)}`;
+                } else {
+                    mhdInput.value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 4)}.${digitsOnly.slice(4, 6)}`;
+                }
+            } else if (digitsOnly.length === 8) {
+                mhdInput.value = `${digitsOnly.slice(0, 2)}.${digitsOnly.slice(2, 4)}.${digitsOnly.slice(4, 8)}`;
+            }
+        }
+        syncMhdStateFromText();
+    });
+
+    function handleCalendarPick() {
+        const iso = mhdCalendar.value;
+        userTouchedMhd = true;
+        mhdHint.style.display = 'none';
+        if (iso && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+            const [y, m, d] = iso.split('-');
+            mhdInput.value = `${d}.${m}.${y}`;
+            mhdIsoValue.value = iso;
+            mhdParsedPreview.textContent = `✓ Gültig bis ${d}.${m}.${y}`;
+            mhdParsedPreview.classList.remove('invalid');
+        } else {
+            mhdInput.value = '';
+            mhdIsoValue.value = '';
+            mhdParsedPreview.textContent = '';
+        }
+    }
+
+    mhdCalendar.addEventListener('change', handleCalendarPick);
+    mhdCalendar.addEventListener('input', handleCalendarPick);
+
+    function setSuggestedMhd(daysFromNow, reasonText) {
+        if (userTouchedMhd) return;
+        const target = new Date();
+        target.setDate(target.getDate() + daysFromNow);
+        const yyyy = target.getFullYear();
+        const mm = String(target.getMonth() + 1).padStart(2, '0');
+        const dd = String(target.getDate()).padStart(2, '0');
+        const iso = `${yyyy}-${mm}-${dd}`;
+        mhdInput.value = `${dd}.${mm}.${yyyy}`;
+        mhdCalendar.value = iso;
+        mhdIsoValue.value = iso;
+        mhdParsedPreview.textContent = `✓ Gültig bis ${dd}.${mm}.${yyyy}`;
+        mhdParsedPreview.classList.remove('invalid');
+        mhdHint.style.display = 'block';
+        mhdHint.textContent = `💡 Richtwert-MHD vorgeschlagen (+${daysFromNow} Tage – ${reasonText})`;
+    }
+
     toggleFormBtn.addEventListener('click', () => {
-        const isHidden = formCard.classList.contains('hidden');
-        if (isHidden) {
+        if (formCard.classList.contains('hidden')) {
+            userTouchedMhd = false;
+            mhdHint.style.display = 'none';
+            mhdParsedPreview.textContent = '';
+            mhdIsoValue.value = '';
+            mhdCalendar.value = '';
             formCard.classList.remove('hidden');
             toggleFormBtn.classList.add('hidden');
             document.getElementById('name').focus();
@@ -655,6 +1171,11 @@
     function closeFormCard() {
         stopScanner();
         form.reset();
+        userTouchedMhd = false;
+        mhdHint.style.display = 'none';
+        mhdParsedPreview.textContent = '';
+        mhdIsoValue.value = '';
+        mhdCalendar.value = '';
         document.getElementById('editId').value = '';
         document.getElementById('lastScannedBarcode').value = '';
         document.getElementById('amount').value = 1;
@@ -667,68 +1188,131 @@
 
     document.getElementById('cancelEditBtn').addEventListener('click', closeFormCard);
 
-    // Tab-Steuerung
     const tabVorratBtn = document.getElementById('tabVorratBtn');
     const tabEinkaufBtn = document.getElementById('tabEinkaufBtn');
+    const tabRezepteBtn = document.getElementById('tabRezepteBtn');
     const viewVorrat = document.getElementById('viewVorrat');
     const viewEinkauf = document.getElementById('viewEinkauf');
+    const viewRezepte = document.getElementById('viewRezepte');
 
-    tabVorratBtn.addEventListener('click', () => {
-        tabVorratBtn.classList.add('active');
-        tabEinkaufBtn.classList.remove('active');
-        viewVorrat.classList.remove('hidden');
-        viewEinkauf.classList.add('hidden');
-    });
+    function switchTab(activeTab) {
+        [tabVorratBtn, tabEinkaufBtn, tabRezepteBtn].forEach(b => b.classList.remove('active'));
+        [viewVorrat, viewEinkauf, viewRezepte].forEach(v => v.classList.add('hidden'));
 
-    tabEinkaufBtn.addEventListener('click', () => {
-        tabEinkaufBtn.classList.add('active');
-        tabVorratBtn.classList.remove('active');
-        viewEinkauf.classList.remove('hidden');
-        viewVorrat.classList.add('hidden');
-    });
+        if (activeTab === 'VORRAT') {
+            tabVorratBtn.classList.add('active');
+            viewVorrat.classList.remove('hidden');
+        } else if (activeTab === 'EINKAUF') {
+            tabEinkaufBtn.classList.add('active');
+            viewEinkauf.classList.remove('hidden');
+        } else if (activeTab === 'REZEPTE') {
+            tabRezepteBtn.classList.add('active');
+            viewRezepte.classList.remove('hidden');
+            renderRecipes();
+        }
+    }
 
-    // Schnell-Filter Chips
+    tabVorratBtn.addEventListener('click', () => switchTab('VORRAT'));
+    tabEinkaufBtn.addEventListener('click', () => switchTab('EINKAUF'));
+    tabRezepteBtn.addEventListener('click', () => switchTab('REZEPTE'));
+
+    // Vorrats-Chips
     const chipAll = document.getElementById('chipAll');
+    const chipOpened = document.getElementById('chipOpened');
     const chipExpiring = document.getElementById('chipExpiring');
     const chipLow = document.getElementById('chipLow');
 
     function setQuickFilter(mode) {
         activeQuickFilter = mode;
         chipAll.classList.toggle('active', mode === 'ALL');
+        chipOpened.classList.toggle('active', mode === 'OPENED');
         chipExpiring.classList.toggle('active', mode === 'EXPIRING');
         chipLow.classList.toggle('active', mode === 'LOW');
         renderList();
     }
 
     chipAll.addEventListener('click', () => setQuickFilter('ALL'));
+    chipOpened.addEventListener('click', () => setQuickFilter('OPENED'));
     chipExpiring.addEventListener('click', () => setQuickFilter('EXPIRING'));
     chipLow.addEventListener('click', () => setQuickFilter('LOW'));
 
-    // --- AUTOMATISCHE LAGERORT- & KATEGORIE-ERKENNUNG ---
-    function suggestStorageAndCategory(productName, barcodeTags = '', targetCatId = 'category', targetLocId = 'location') {
-        const text = (productName + ' ' + barcodeTags).toLowerCase();
+    // Rezept-Chips
+    const recChipAll = document.getElementById('recChipAll');
+    const recChipReady = document.getElementById('recChipReady');
+    const recChipWeek = document.getElementById('recChipWeek');
+    const recChipMissing = document.getElementById('recChipMissing');
+
+    function setRecipeFilter(mode) {
+        activeRecipeFilter = mode;
+        recChipAll.classList.toggle('active', mode === 'ALL');
+        recChipReady.classList.toggle('active', mode === 'READY');
+        recChipWeek.classList.toggle('active', mode === 'WEEK');
+        recChipMissing.classList.toggle('active', mode === 'MISSING');
+        renderRecipes();
+    }
+
+    recChipAll.addEventListener('click', () => setRecipeFilter('ALL'));
+    recChipReady.addEventListener('click', () => setRecipeFilter('READY'));
+    recChipWeek.addEventListener('click', () => setRecipeFilter('WEEK'));
+    recChipMissing.addEventListener('click', () => setRecipeFilter('MISSING'));
+
+    // --- KATEGORIE-, LAGERORT- & MHD-ERKENNUNG ---
+    function suggestStorageAndCategory(productName, barcodeTags = '', targetCatId = 'category', targetLocId = 'location', suggestMhd = true) {
+        const nameLower = productName.toLowerCase();
+        const cleanTags = barcodeTags
+            .toLowerCase()
+            .replace(/plant-based-foods-and-beverages/g, '')
+            .replace(/beverages-and-beverages-preparations/g, '');
+        const text = `${nameLower} ${cleanTags}`;
+
         const catEl = document.getElementById(targetCatId);
         const locEl = targetLocId ? document.getElementById(targetLocId) : null;
 
-        const freezerWords = ['tk', 'tiefkühl', 'eis', 'pommes', 'kroketten', 'fischstäbchen', 'gefroren', 'frozen', 'ice-cream', 'pizza'];
+        const meatFishWords = [
+            'fleisch', 'hack', 'hackfleisch', 'rinderhack', 'schweinehack', 'hähnchen', 'hühnchen', 'pute', 'putenbrust',
+            'schnitzel', 'steak', 'filet', 'gulasch', 'bratwurst', 'wurst', 'aufschnitt', 'schinken', 'salami', 'speck', 'bacon',
+            'fisch', 'lachs', 'forelle', 'kabeljau', 'seelachs', 'garnelen', 'scampi', 'thunfisch', 'en:meats', 'en:fishes', 'en:seafood'
+        ];
+
+        const freezerWords = ['tk', 'tiefkühl', 'eis', 'pommes', 'kroketten', 'fischstäbchen', 'gefroren', 'en:frozen', 'ice-cream', 'pizza'];
         if (freezerWords.some(w => text.includes(w))) {
             if (locEl) locEl.value = 'Gefriertruhe';
+            if (meatFishWords.some(w => text.includes(w)) && catEl) catEl.value = 'FleischFisch';
+            if (suggestMhd) setSuggestedMhd(90, 'Tiefkühlware');
             return;
         }
 
-        const fridgeProduce = [
-            'salat', 'feldsalat', 'rucola', 'eisberg', 'spinat', 'brokkoli', 'blumenkohl',
-            'karotte', 'möhre', 'radieschen', 'kohlrabi', 'lauch', 'porree', 'spargel',
-            'pilz', 'champignon', 'pfifferling', 'sellerie', 'fenchel', 'rosenkohl', 'weißkohl', 'rotkohl',
-            'erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'brombeer', 'johannisbeer',
-            'kirsche', 'traube', 'weintraube', 'feige', 'frühlingszwiebel'
-        ];
+        if (meatFishWords.some(w => text.includes(w))) {
+            if (catEl) catEl.value = 'FleischFisch';
+            if (locEl) locEl.value = 'Kühlschrank';
+            if (suggestMhd) setSuggestedMhd(2, 'frisches Fleisch/Fisch');
+            return;
+        }
 
+        const bakingWords = [
+            'back family', 'backzutat', 'backpulver', 'natron', 'vanillin', 'vanillezucker', 'vanilleextrakt', 'trockenhefe',
+            'haselnuss', 'haselnüsse', 'mandel', 'walnuss', 'cashew', 'pistazie', 'kokosraspel', 'rosinen', 'sultaninen',
+            'kuvertüre', 'schokodrops', 'backkakao', 'speisestärke', 'tortenguss', 'gelatine', 'marzipan', 'puderzucker', 'hefe',
+            'en:nuts', 'en:baking-ingredients', 'en:dried-fruits'
+        ];
+        if (bakingWords.some(w => text.includes(w))) {
+            if (catEl) catEl.value = 'Backen';
+            if (locEl) locEl.value = nameLower.includes('frische hefe') ? 'Kühlschrank' : 'Vorratsschrank';
+            return;
+        }
+
+        const shortFridgeProduce = [
+            'salat', 'feldsalat', 'rucola', 'eisberg', 'spinat', 'spargel',
+            'pilz', 'champignon', 'pfifferling', 'erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'brombeer', 'johannisbeer', 'frühlingszwiebel'
+        ];
+        const longFridgeProduce = [
+            'brokkoli', 'blumenkohl', 'karotte', 'möhre', 'radieschen', 'kohlrabi', 'lauch', 'porree',
+            'sellerie', 'fenchel', 'rosenkohl', 'weißkohl', 'rotkohl', 'kirsche', 'traube', 'weintraube', 'feige'
+        ];
         const cellarProduce = [
             'kartoffel', 'süßkartoffel', 'zwiebel', 'schalotte', 'knoblauch',
             'apfel', 'äpfel', 'birne', 'kürbis', 'hokkaido', 'butternut', 'rote bete', 'rübe'
         ];
-
         const roomProduce = [
             'tomate', 'gurke', 'paprika', 'zucchini', 'aubergine', 'avocado',
             'banane', 'orange', 'mandarine', 'clementine', 'zitrone', 'limette', 'grapefruit',
@@ -736,57 +1320,117 @@
             'pfirsich', 'nektarine', 'aprikose', 'pflaume', 'zwetschge', 'kiwi', 'ingwer', 'basilikum'
         ];
 
-        if (fridgeProduce.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'ObstGemuese';
-            if (locEl) locEl.value = 'Kühlschrank';
-            return;
-        }
-        if (cellarProduce.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'ObstGemuese';
-            if (locEl) locEl.value = 'Keller';
-            return;
-        }
-        if (roomProduce.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'ObstGemuese';
-            if (locEl) locEl.value = 'Obstschale / Küche';
-            return;
+        const isCannedOrJar = ['passiert', 'geschält', 'gehackt', 'dose', 'glas', 'konserve', 'mus', 'mark', 'pesto', 'soße', 'sauce', 'ketchup', 'en:canned', 'en:jars'].some(w => text.includes(w));
+
+        if (!isCannedOrJar) {
+            if (shortFridgeProduce.some(w => text.includes(w))) {
+                if (catEl) catEl.value = 'ObstGemuese';
+                if (locEl) locEl.value = 'Kühlschrank';
+                if (suggestMhd) setSuggestedMhd(3, 'empfindliches Frischprodukt');
+                return;
+            }
+            if (longFridgeProduce.some(w => text.includes(w))) {
+                if (catEl) catEl.value = 'ObstGemuese';
+                if (locEl) locEl.value = 'Kühlschrank';
+                if (suggestMhd) setSuggestedMhd(7, 'Kühlschrank-Gemüse/-Obst');
+                return;
+            }
+            if (cellarProduce.some(w => text.includes(w))) {
+                if (catEl) catEl.value = 'ObstGemuese';
+                if (locEl) locEl.value = 'Keller';
+                if (suggestMhd) setSuggestedMhd(21, 'Lagerobst/-gemüse');
+                return;
+            }
+            if (roomProduce.some(w => text.includes(w))) {
+                if (catEl) catEl.value = 'ObstGemuese';
+                if (locEl) locEl.value = 'Obstschale / Küche';
+                if (suggestMhd) setSuggestedMhd(5, 'Zimmertemperatur-Obst/-Gemüse');
+                return;
+            }
         }
 
-        const dairyWords = ['milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche', 'mozzarella', 'parmesan', 'gouda', 'dairy', 'milk', 'cheese', 'yogurt'];
-        const fridgeWords = ['wurst', 'aufschnitt', 'schinken', 'salami', 'fleisch', 'hack', 'hähnchen', 'pute', 'steak', 'fisch', 'lachs', 'forelle', 'eier', 'hefe', 'blätterteig', 'pesto', 'hummus', 'remoulade', 'mayonnaise', 'meat', 'fish'];
-
+        const dairyWords = [
+            'milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche',
+            'mozzarella', 'parmesan', 'gouda', 'emmentaler', 'feta', 'mascarpone', 'ricotta', 'skyr', 'kefir', 'buttermilch',
+            'en:dairies', 'en:milks', 'en:cheeses', 'en:yogurts'
+        ];
         if (dairyWords.some(w => text.includes(w))) {
-            if (locEl) locEl.value = 'Kühlschrank';
             if (catEl) catEl.value = 'Molkerei';
-            return;
-        }
-        if (fridgeWords.some(w => text.includes(w))) {
-            if (locEl) locEl.value = 'Kühlschrank';
+            if (locEl) locEl.value = nameLower.includes('h-milch') ? 'Vorratsschrank' : 'Kühlschrank';
             return;
         }
 
-        const cellarDrinks = ['bier', 'wein', 'sekt', 'kiste', 'kasten', 'mineralwasser', 'sprudel', 'saft'];
-        if (cellarDrinks.some(w => text.includes(w))) {
-            if (locEl) locEl.value = 'Keller';
+        const cannedWords = [
+            'passierte tomaten', 'gehackte tomaten', 'tomatenmark', 'maiskörner', 'kidneybohnen', 'kichererbsen',
+            'erbsen', 'linsen', 'rotkohl im glas', 'apfelmus', 'marmelade', 'konfitüre', 'honig', 'nutella', 'aufstrich',
+            'oliven', 'gewürzgurken', 'cornichons', 'eingelegt', 'suppe', 'eintopf', 'brühe', 'fonds',
+            'en:canned', 'en:preserved', 'en:jams', 'en:honeys'
+        ];
+        if (cannedWords.some(w => text.includes(w))) {
+            if (catEl) catEl.value = 'Konserven';
+            if (locEl) locEl.value = 'Vorratsschrank';
+            return;
+        }
+
+        const dryWords = [
+            'nudel', 'pasta', 'spaghetti', 'penne', 'fusilli', 'tagliatelle', 'lasagne', 'reis', 'basmati', 'risotto',
+            'mehl', 'weizenmehl', 'dinkelmehl', 'zucker', 'haferflocken', 'müsli', 'cornflakes', 'grieß', 'paniermehl', 'semmelbrösel',
+            'couscous', 'bulgur', 'quinoa', 'knäckebrot', 'zwieback', 'en:pastas', 'en:rices', 'en:flours', 'en:cereals'
+        ];
+        if (dryWords.some(w => text.includes(w))) {
+            if (catEl) catEl.value = 'Trockenwaren';
+            if (locEl) locEl.value = 'Vorratsschrank';
+            return;
+        }
+
+        const spiceSauceWords = [
+            'gewürz', 'salz', 'pfeffer', 'paprikapulver', 'curry', 'kurkuma', 'oregano', 'thymian', 'zimt', 'muskat',
+            'öl', 'olivenöl', 'rapsöl', 'sonnenblumenöl', 'essig', 'balsamico', 'sojasoße', 'sojasauce',
+            'ketchup', 'senf', 'mayonnaise', 'remoulade', 'pesto', 'dressing', 'tabasco', 'grillsoße', 'barbecue',
+            'en:spices', 'en:sauces', 'en:condiments', 'en:oils', 'en:vinegars'
+        ];
+        if (spiceSauceWords.some(w => text.includes(w))) {
+            if (catEl) catEl.value = 'Gewürze';
+            if (locEl) locEl.value = ['remoulade', 'mayonnaise', 'pesto'].some(w => nameLower.includes(w)) ? 'Kühlschrank' : 'Vorratsschrank';
+            return;
+        }
+
+        const drinkWords = [
+            'wasser', 'mineralwasser', 'sprudel', 'saft', 'apfelsaft', 'orangensaft', 'multivitamin', 'nektar', 'schorle',
+            'cola', 'limonade', 'limo', 'eistee', 'energy', 'bier', 'radler', 'wein', 'sekt', 'prosecco',
+            'sirup', 'kaffee', 'espresso', 'kaffeebohnen', 'kaffeepads', 'kapseln', 'tee', 'kakao',
+            'en:waters', 'en:juices', 'en:sodas', 'en:soft-drinks', 'en:alcoholic-beverages', 'en:teas', 'en:coffees'
+        ];
+        if (drinkWords.some(w => text.includes(w))) {
             if (catEl) catEl.value = 'Getränke';
+            if (locEl) {
+                const isCellarDrink = ['kiste', 'kasten', 'bier', 'wein', 'sekt', 'mineralwasser', 'sprudel', 'saft'].some(w => nameLower.includes(w));
+                locEl.value = isCellarDrink ? 'Keller' : 'Vorratsschrank';
+            }
             return;
         }
 
-        if (locEl) locEl.value = 'Vorratsschrank';
+        if (catEl) catEl.value = 'Sonstiges';
+        if (locEl) locEl.value = ['eier', 'blätterteig', 'hummus'].some(w => nameLower.includes(w)) ? 'Kühlschrank' : 'Vorratsschrank';
     }
 
     document.getElementById('name').addEventListener('input', (e) => {
         if (!document.getElementById('editId').value) {
-            suggestStorageAndCategory(e.target.value);
+            suggestStorageAndCategory(e.target.value, '', 'category', 'location', true);
         }
     });
 
-    // Auch auf der Einkaufsliste automatisch die Supermarkt-Abteilung vorschlagen
-    document.getElementById('shopName').addEventListener('input', (e) => {
-        suggestStorageAndCategory(e.target.value, '', 'shopCategory', null);
+    document.getElementById('location').addEventListener('change', (e) => {
+        if (!document.getElementById('editId').value && e.target.value === 'Gefriertruhe') {
+            setSuggestedMhd(90, 'Gefriertruhe');
+        }
     });
 
-    // --- BARCODE SCANNER & EIGENER BARCODE-SPEICHER ---
+    document.getElementById('shopName').addEventListener('input', (e) => {
+        suggestStorageAndCategory(e.target.value, '', 'shopCategory', null, false);
+    });
+
+    // --- BARCODE SCANNER ---
     const toggleScanBtn = document.getElementById('toggleScanBtn');
     const readerWrapper = document.getElementById('reader-wrapper');
     const scanFeedback = document.getElementById('scan-feedback');
@@ -817,7 +1461,7 @@
         showFeedback(`🔍 Suche Produkt für Code ${barcode}...`);
 
         try {
-            const customSnap = await getDoc(doc(db, "haushalte", "Carsebama_200825", "barcodes", barcode));
+            const customSnap = await getDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "barcodes", barcode));
             if (customSnap.exists()) {
                 const c = customSnap.data();
                 document.getElementById('name').value = c.name || '';
@@ -826,6 +1470,7 @@
                 document.getElementById('category').value = c.category || 'Sonstiges';
                 document.getElementById('location').value = c.location || 'Vorratsschrank';
                 if (c.minAmount) document.getElementById('minAmount').value = c.minAmount;
+                suggestStorageAndCategory(c.name || '', '', 'category', 'location', true);
                 showFeedback(`⭐ Aus eigenem Merkzettel geladen: "${c.name}"`);
                 return;
             }
@@ -855,20 +1500,14 @@
                     }
                 }
 
-                const tags = (p.categories_tags || []).join(' ').toLowerCase();
-                if (tags.includes('beverage') || tags.includes('drink') || tags.includes('water') || tags.includes('juice')) {
-                    document.getElementById('category').value = 'Getränke';
-                } else if (tags.includes('pasta') || tags.includes('rice') || tags.includes('flour') || tags.includes('cereal')) {
-                    document.getElementById('category').value = 'Trockenwaren';
-                } else if (tags.includes('spice') || tags.includes('sauce') || tags.includes('condiment')) {
-                    document.getElementById('category').value = 'Gewürze';
-                } else if (tags.includes('canned') || tags.includes('preserved') || tags.includes('jar')) {
-                    document.getElementById('category').value = 'Konserven';
-                } else if (tags.includes('fruit') || tags.includes('vegetable')) {
-                    document.getElementById('category').value = 'ObstGemuese';
-                }
+                const rawTags = [
+                    ...(p.categories_tags || []),
+                    p.categories || '',
+                    p.pnns_groups_1 || '',
+                    p.pnns_groups_2 || ''
+                ].join(' ').toLowerCase();
 
-                suggestStorageAndCategory(fullName, tags);
+                suggestStorageAndCategory(fullName, rawTags, 'category', 'location', true);
                 showFeedback(`✅ Gefunden: "${fullName || barcode}" – bitte prüfen!`);
             } else {
                 showFeedback(`⚠️ Unbekannter Code (${barcode}). Einmal eingeben – die App merkt ihn sich!`, true);
@@ -904,12 +1543,13 @@
         }
     });
 
-    // --- FIREBASE ECHTZEIT-SYNCHRONISATION ---
+    // --- FIREBASE ECHTZEIT-LISTENERS ---
     onSnapshot(vorratRef, (snapshot) => {
         inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         document.getElementById('vorratCount').textContent = inventory.length;
         syncStatus.textContent = "🟢 Live";
         renderList();
+        if (!viewRezepte.classList.contains('hidden')) renderRecipes();
     }, () => {
         syncStatus.textContent = "🔴 Offline / Fehler";
     });
@@ -920,9 +1560,56 @@
         renderShoppingList();
     });
 
-    // --- FORMULAR SPEICHERN ---
+    onSnapshot(rezepteRef, (snapshot) => {
+        recipes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('rezepteCount').textContent = recipes.length;
+        renderRecipes();
+    });
+
+    onSnapshot(statsRef, (snapshot) => {
+        yearlyStats = {};
+        snapshot.docs.forEach(d => {
+            yearlyStats[d.id] = d.data();
+        });
+    });
+
+    async function logConsumption(item, consumedAmount) {
+        const year = String(new Date().getFullYear());
+        const yearDocRef = doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "statistik", year);
+        const safeKey = item.name.trim().replace(/[.$/[\]#]/g, '_');
+        const catKey = item.category || 'Sonstiges';
+
+        try {
+            await setDoc(yearDocRef, {
+                totalActions: increment(1),
+                [`items.${safeKey}.name`]: item.name.trim(),
+                [`items.${safeKey}.count`]: increment(1),
+                [`items.${safeKey}.totalQty`]: increment(consumedAmount),
+                [`items.${safeKey}.unit`]: item.unit || 'Stk.',
+                [`categories.${catKey}`]: increment(1)
+            }, { merge: true });
+        } catch (e) {
+            console.warn("Statistik-Update fehlgeschlagen:", e);
+        }
+    }
+
+    // --- VORRATS-FORMULAR SPEICHERN ---
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const rawMhd = mhdInput.value.trim();
+        let parsedIsoMhd = mhdIsoValue.value || '';
+
+        if (rawMhd && !parsedIsoMhd) {
+            parsedIsoMhd = parseFlexibleDateToIso(rawMhd);
+        }
+
+        if (rawMhd && !parsedIsoMhd) {
+            alert('Bitte ein gültiges MHD eingeben (z. B. 05/28 oder 15.08.27) oder über das Kalender-Symbol auswählen.');
+            mhdInput.focus();
+            return;
+        }
+
         const editId = document.getElementById('editId').value;
         const scannedBarcode = document.getElementById('lastScannedBarcode').value;
         const minVal = parseFloat(document.getElementById('minAmount').value);
@@ -933,12 +1620,12 @@
             unit: document.getElementById('unit').value,
             category: document.getElementById('category').value,
             location: document.getElementById('location').value,
-            mhd: document.getElementById('mhd').value,
+            mhd: parsedIsoMhd,
             minAmount: !isNaN(minVal) && minVal > 0 ? minVal : null
         };
 
         if (scannedBarcode) {
-           await setDoc(doc(db, "haushalte", "Carsebama_200825", "barcodes", scannedBarcode), {
+            await setDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "barcodes", scannedBarcode), {
                 name: itemData.name,
                 amount: itemData.amount,
                 unit: itemData.unit,
@@ -948,19 +1635,51 @@
             });
         }
 
+        if (!editId) {
+            const duplicate = inventory.find(i =>
+                i.name.trim().toLowerCase() === itemData.name.toLowerCase() &&
+                i.unit === itemData.unit &&
+                (i.location || 'Vorratsschrank') === itemData.location &&
+                (i.mhd || '') === (itemData.mhd || '') &&
+                !i.isOpened
+            );
+
+            if (duplicate) {
+                const combinedQty = Math.round((duplicate.amount + itemData.amount) * 10) / 10;
+                if (confirm(`🔄 "${duplicate.name}" (${duplicate.location}) ist mit demselben MHD schon da (${duplicate.amount} ${duplicate.unit}).\n\nSoll ich die Menge einfach auf ${combinedQty} ${duplicate.unit} erhöhen?`)) {
+                    closeFormCard();
+                    await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", duplicate.id), {
+                        amount: combinedQty
+                    });
+                    return;
+                }
+            }
+        }
+
         closeFormCard();
 
         if (editId) {
-            await updateDoc(doc(db, "vorrat", editId), itemData);
+            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", editId), itemData);
         } else {
+            itemData.isOpened = false;
             await addDoc(vorratRef, itemData);
         }
     });
+
+    window.toggleOpened = async function(id) {
+        const item = inventory.find(i => i.id === id);
+        if (!item) return;
+        await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", id), {
+            isOpened: !item.isOpened
+        });
+    };
 
     window.editItem = function(id) {
         const item = inventory.find(i => i.id === id);
         if (!item) return;
 
+        userTouchedMhd = true;
+        mhdHint.style.display = 'none';
         formCard.classList.remove('hidden');
         toggleFormBtn.classList.add('hidden');
 
@@ -970,8 +1689,19 @@
         document.getElementById('unit').value = item.unit;
         document.getElementById('category').value = item.category;
         document.getElementById('location').value = item.location || 'Vorratsschrank';
-        document.getElementById('mhd').value = item.mhd || '';
         document.getElementById('minAmount').value = item.minAmount || '';
+
+        if (item.mhd && /^\d{4}-\d{2}-\d{2}$/.test(item.mhd)) {
+            const [y, m, d] = item.mhd.split('-');
+            mhdInput.value = `${d}.${m}.${y}`;
+            mhdCalendar.value = item.mhd;
+            mhdIsoValue.value = item.mhd;
+        } else {
+            mhdInput.value = item.mhd || '';
+            mhdCalendar.value = '';
+            mhdIsoValue.value = '';
+        }
+        syncMhdStateFromText();
 
         document.getElementById('formTitle').textContent = '✏️ Artikel bearbeiten';
         document.getElementById('submitBtn').textContent = '💾 Änderungen speichern';
@@ -984,7 +1714,12 @@
 
         const step = (item.unit === 'g' || item.unit === 'ml') ? 50 : ((item.unit === 'kg' || item.unit === 'l') ? 0.5 : 1);
         const newAmount = Math.round((item.amount + (delta * step)) * 10) / 10;
-        const itemDoc = doc(db, "vorrat", id);
+        const itemDoc = doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", id);
+
+        if (delta < 0) {
+            const consumed = Math.min(item.amount, step);
+            logConsumption(item, consumed);
+        }
 
         if (newAmount <= 0) {
             if (confirm(`"${item.name}" ist leer. Aus dem Vorrat löschen und auf die Einkaufsliste setzen?`)) {
@@ -1001,7 +1736,6 @@
             }
         } else {
             await updateDoc(itemDoc, { amount: newAmount });
-            // Prüfen, ob Mindestbestand beim Reduzieren unterschritten wurde
             if (delta < 0 && item.minAmount && newAmount <= item.minAmount) {
                 const alreadyOnList = shoppingItems.some(s => s.name.toLowerCase() === item.name.toLowerCase());
                 if (!alreadyOnList && confirm(`📉 "${item.name}" hat den Mindestbestand (${item.minAmount} ${item.unit}) erreicht. Schon auf die Einkaufsliste setzen?`)) {
@@ -1017,11 +1751,11 @@
         }
     };
 
-    window.quickAddToShopping = async function(itemName) {
+    window.quickAddToShopping = async function(itemName, category = 'Sonstiges', note = '') {
         await addDoc(einkaufRef, {
             name: itemName,
-            note: '',
-            category: 'Sonstiges',
+            note: note,
+            category: category,
             location: 'Vorratsschrank',
             unit: 'Stk.'
         });
@@ -1058,13 +1792,13 @@
             const mhd = getMhdInfo(item.mhd);
             const isLow = item.minAmount && item.amount <= item.minAmount;
 
+            if (activeQuickFilter === 'OPENED' && !item.isOpened) return false;
             if (activeQuickFilter === 'EXPIRING' && mhd.diffDays > 14) return false;
             if (activeQuickFilter === 'LOW' && !isLow) return false;
 
             return matchesName && matchesCat && matchesLoc;
         });
 
-        // "Ist es da?" Sofort-Banner bei aktiver Suche aktualisieren
         if (rawSearch.length >= 2) {
             const exactMatches = inventory.filter(i => i.name.toLowerCase().includes(searchTerm));
             quickCheckBanner.style.display = 'block';
@@ -1085,6 +1819,8 @@
         }
 
         filtered.sort((a, b) => {
+            if (a.isOpened && !b.isOpened) return -1;
+            if (!a.isOpened && b.isOpened) return 1;
             if (!a.mhd) return 1;
             if (!b.mhd) return -1;
             return new Date(a.mhd) - new Date(b.mhd);
@@ -1101,7 +1837,7 @@
             const locText = item.location || 'Vorratsschrank';
             const catText = categoryLabels[item.category] || item.category;
             const isLow = item.minAmount && item.amount <= item.minAmount;
-            const statusClass = mhdInfo.cssClass || (isLow ? 'low-stock' : '');
+            const statusClass = item.isOpened ? 'opened-item' : (mhdInfo.cssClass || (isLow ? 'low-stock' : ''));
 
             const card = document.createElement('div');
             card.className = `item-card ${statusClass}`;
@@ -1109,6 +1845,7 @@
                 <div class="item-info">
                     <h3>${item.name}</h3>
                     <div class="item-meta">
+                        ${item.isOpened ? `<span class="badge badge-opened">🔓 Angebrochen</span>` : ''}
                         <span class="badge">${catText}</span>
                         <span class="badge badge-loc">📍 ${locText}</span>
                         ${isLow ? `<span class="badge badge-low">📉 Knapp (Min: ${item.minAmount})</span>` : ''}
@@ -1116,6 +1853,7 @@
                     </div>
                 </div>
                 <div class="controls">
+                    <button class="icon-btn ${item.isOpened ? 'opened-active' : ''}" onclick="toggleOpened('${item.id}')" title="${item.isOpened ? 'Als geschlossen markieren' : 'Als angebrochen markieren'}">🔓</button>
                     <button class="icon-btn" onclick="editItem('${item.id}')" title="Bearbeiten">✏️</button>
                     <button class="qty-btn" onclick="changeAmount('${item.id}', -1)">-</button>
                     <span class="qty-display">${item.amount} ${item.unit}</span>
@@ -1135,8 +1873,495 @@
     filterCategory.addEventListener('change', renderList);
     filterLocation.addEventListener('change', renderList);
 
-    // --- KOCHIDEEN & CSV-BACKUP ---
-    document.getElementById('recipeBtn').addEventListener('click', async () => {
+    // --- REZEPTE: SMART-PARSER (CIRCLE TO SEARCH & KAMERA-OCR) ---
+    const toggleRecipeFormBtn = document.getElementById('toggleRecipeFormBtn');
+    const recipeFormCard = document.getElementById('recipeFormCard');
+    const ingredientRows = document.getElementById('ingredientRows');
+    const ocrFeedback = document.getElementById('ocrFeedback');
+
+    function addIngredientInputRow(name = '', amount = '', unit = 'g') {
+        const row = document.createElement('div');
+        row.className = 'ing-builder-row';
+        row.innerHTML = `
+            <input type="text" class="ing-name" placeholder="Zutat (z.B. Hackfleisch)" value="${name.replace(/"/g, '&quot;')}" required>
+            <input type="number" class="ing-amount" placeholder="Menge" value="${amount}" min="0" step="any">
+            <select class="ing-unit">
+                <option value="Stk." ${unit==='Stk.'?'selected':''}>Stk.</option>
+                <option value="g" ${unit==='g'?'selected':''}>g</option>
+                <option value="kg" ${unit==='kg'?'selected':''}>kg</option>
+                <option value="ml" ${unit==='ml'?'selected':''}>ml</option>
+                <option value="l" ${unit==='l'?'selected':''}>l</option>
+                <option value="Dosen" ${unit==='Dosen'?'selected':''}>Dosen</option>
+            </select>
+            <button type="button" class="icon-btn" onclick="this.parentElement.remove()" title="Zeile entfernen">✕</button>
+        `;
+        ingredientRows.appendChild(row);
+    }
+
+    function parseRecipeTextIntoForm(rawText) {
+        const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (lines.length === 0) return;
+
+        let title = '';
+        const parsedIngredients = [];
+        const stepLines = [];
+        let inStepsSection = false;
+
+        const ingRegex = /^[-•*]?\s*(\d+(?:[.,]\d+)?)\s*(g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|dose|dosen|glas|gläser|stk\.?|stück|packung|pck\.?|el|tl|prise|bund|zehe|zehen)?\s+(.+)$/i;
+
+        lines.forEach((line, idx) => {
+            const lower = line.toLowerCase();
+
+            if (/^(zubereitung|schritte|anleitung|vorgehen)\b/i.test(lower)) {
+                inStepsSection = true;
+                return;
+            }
+            if (/^(zutaten|für \d+ personen)\b/i.test(lower)) {
+                inStepsSection = false;
+                return;
+            }
+
+            if (idx === 0 && line.length <= 65 && !ingRegex.test(line)) {
+                title = line;
+                return;
+            }
+
+            if (!inStepsSection) {
+                const match = line.match(ingRegex);
+                if (match && match[3].length <= 45) {
+                    const num = parseFloat(match[1].replace(',', '.'));
+                    const rawUnit = (match[2] || '').toLowerCase();
+                    let mappedUnit = 'Stk.';
+                    let finalAmount = num;
+
+                    if (['g', 'gr', 'gramm'].includes(rawUnit)) mappedUnit = 'g';
+                    else if (['kg', 'kilogramm'].includes(rawUnit)) mappedUnit = 'kg';
+                    else if (['ml', 'milliliter'].includes(rawUnit)) mappedUnit = 'ml';
+                    else if (['l', 'liter'].includes(rawUnit)) mappedUnit = 'l';
+                    else if (['dose', 'dosen', 'glas', 'gläser'].includes(rawUnit)) mappedUnit = 'Dosen';
+                    else if (['el', 'tl', 'prise', 'bund', 'zehe', 'zehen'].includes(rawUnit)) {
+                        parsedIngredients.push({ name: `${num} ${match[2]} ${match[3]}`, amount: '', unit: 'Stk.' });
+                        return;
+                    }
+
+                    parsedIngredients.push({
+                        name: match[3].trim(),
+                        amount: !isNaN(finalAmount) ? finalAmount : '',
+                        unit: mappedUnit
+                    });
+                    return;
+                }
+            }
+
+            stepLines.push(line);
+        });
+
+        if (title && !document.getElementById('recTitle').value.trim()) {
+            document.getElementById('recTitle').value = title;
+        }
+
+        if (parsedIngredients.length > 0) {
+            ingredientRows.innerHTML = '';
+            parsedIngredients.forEach(ing => addIngredientInputRow(ing.name, ing.amount, ing.unit));
+        }
+
+        if (stepLines.length > 0) {
+            const existingNotes = document.getElementById('recNotes').value.trim();
+            const newNotes = stepLines.join('\n');
+            document.getElementById('recNotes').value = existingNotes ? `${existingNotes}\n${newNotes}` : newNotes;
+        }
+
+        ocrFeedback.style.display = 'block';
+        ocrFeedback.style.color = 'var(--success)';
+        ocrFeedback.textContent = `✅ Erkannt: ${parsedIngredients.length} Zutaten & ${stepLines.length} Textzeilen übernommen! Bitte kurz prüfen.`;
+    }
+
+    document.getElementById('pasteRecipeBtn').addEventListener('click', async () => {
+        try {
+            const clipText = await navigator.clipboard.readText();
+            if (!clipText || !clipText.trim()) {
+                alert('Die Zwischenablage ist leer. Markiere zuerst ein Rezept (z. B. über Circle to Search) und tippe auf „Kopieren“.');
+                return;
+            }
+            parseRecipeTextIntoForm(clipText);
+        } catch (err) {
+            const manual = prompt('Dein Browser blockiert den direkten Zugriff auf die Zwischenablage. Füge den kopierten Text einfach hier ein:');
+            if (manual) parseRecipeTextIntoForm(manual);
+        }
+    });
+
+    const ocrFileInput = document.getElementById('ocrFileInput');
+    document.getElementById('ocrPhotoBtn').addEventListener('click', () => ocrFileInput.click());
+
+    ocrFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        ocrFeedback.style.display = 'block';
+        ocrFeedback.style.color = 'var(--primary)';
+        ocrFeedback.textContent = '⏳ Lese Rezepttext vom Foto aus (dauert ca. 5–10 Sekunden)...';
+
+        try {
+            const result = await Tesseract.recognize(file, 'deu');
+            parseRecipeTextIntoForm(result.data.text || '');
+        } catch (err) {
+            ocrFeedback.style.color = 'var(--danger)';
+            ocrFeedback.textContent = '❌ Texterkennung fehlgeschlagen. Tipp: Nutze Circle to Search auf dem Handy und tippe auf „Aus Zwischenablage“!';
+        }
+        ocrFileInput.value = '';
+    });
+
+    toggleRecipeFormBtn.addEventListener('click', () => {
+        recipeFormCard.classList.remove('hidden');
+        toggleRecipeFormBtn.classList.add('hidden');
+        ocrFeedback.style.display = 'none';
+        document.getElementById('editRecipeId').value = '';
+        document.getElementById('recipeFormTitle').textContent = 'Neues Rezept anlegen';
+        document.getElementById('saveRecipeBtn').textContent = '💾 Rezept speichern';
+        if (ingredientRows.children.length === 0) {
+            addIngredientInputRow('', '', 'g');
+            addIngredientInputRow('', '', 'Stk.');
+        }
+    });
+
+    document.getElementById('closeRecipeFormBtn').addEventListener('click', () => {
+        recipeFormCard.classList.add('hidden');
+        toggleRecipeFormBtn.classList.remove('hidden');
+        document.getElementById('recipeForm').reset();
+        document.getElementById('editRecipeId').value = '';
+        ocrFeedback.style.display = 'none';
+        ingredientRows.innerHTML = '';
+    });
+
+    document.getElementById('addIngRowBtn').addEventListener('click', () => addIngredientInputRow('', '', 'Stk.'));
+
+    document.getElementById('recipeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('editRecipeId').value;
+        const title = document.getElementById('recTitle').value.trim();
+        const notes = document.getElementById('recNotes').value.trim();
+        const rows = ingredientRows.querySelectorAll('.ing-builder-row');
+        const ingredients = [];
+
+        rows.forEach(r => {
+            const n = r.querySelector('.ing-name').value.trim();
+            const a = parseFloat(r.querySelector('.ing-amount').value);
+            const u = r.querySelector('.ing-unit').value;
+            if (n) {
+                ingredients.push({
+                    name: n,
+                    amount: !isNaN(a) && a > 0 ? a : null,
+                    unit: u
+                });
+            }
+        });
+
+        if (ingredients.length === 0) {
+            alert('Bitte mindestens eine Zutat eintragen.');
+            return;
+        }
+
+        document.getElementById('closeRecipeFormBtn').click();
+
+        if (editId) {
+            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", editId), { title, notes, ingredients });
+        } else {
+            await addDoc(rezepteRef, { title, notes, ingredients, plannedThisWeek: false });
+        }
+    });
+
+    window.editRecipe = function(id) {
+        const rec = recipes.find(r => r.id === id);
+        if (!rec) return;
+
+        recipeFormCard.classList.remove('hidden');
+        toggleRecipeFormBtn.classList.add('hidden');
+        ocrFeedback.style.display = 'none';
+
+        document.getElementById('editRecipeId').value = rec.id;
+        document.getElementById('recTitle').value = rec.title;
+        document.getElementById('recNotes').value = rec.notes || '';
+        document.getElementById('recipeFormTitle').textContent = '✏️ Rezept bearbeiten';
+        document.getElementById('saveRecipeBtn').textContent = '💾 Änderungen speichern';
+
+        ingredientRows.innerHTML = '';
+        (rec.ingredients || []).forEach(ing => addIngredientInputRow(ing.name, ing.amount || '', ing.unit || 'Stk.'));
+        recipeFormCard.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.deleteRecipe = async function(id) {
+        if (confirm('Dieses Rezept wirklich löschen?')) {
+            await deleteDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", id));
+        }
+    };
+
+    window.toggleWeekPlan = async function(id) {
+        const rec = recipes.find(r => r.id === id);
+        if (!rec) return;
+        await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", id), {
+            plannedThisWeek: !rec.plannedThisWeek
+        });
+    };
+
+    window.addAllWeekMissingToShopping = async function() {
+        const planned = recipes.filter(r => r.plannedThisWeek);
+        if (planned.length === 0) return;
+
+        let addedCount = 0;
+        for (const rec of planned) {
+            for (const ing of (rec.ingredients || [])) {
+                const check = checkIngredientStock(ing);
+                if (check.status !== 'ok') {
+                    const alreadyOnList = shoppingItems.some(s => s.name.toLowerCase() === ing.name.toLowerCase());
+                    if (!alreadyOnList) {
+                        const note = ing.amount ? `Für ${rec.title} (${ing.amount} ${ing.unit})` : `Für ${rec.title}`;
+                        await addDoc(einkaufRef, {
+                            name: ing.name,
+                            note: note,
+                            category: 'Sonstiges',
+                            location: 'Vorratsschrank',
+                            unit: ing.unit || 'Stk.'
+                        });
+                        addedCount++;
+                    }
+                }
+            }
+        }
+
+        if (addedCount > 0) {
+            alert(`🛒 ${addedCount} fehlende Zutaten aus eurem Wochenplan wurden auf die Einkaufsliste gesetzt!`);
+        } else {
+            alert('✅ Alle Zutaten für euren Wochenplan sind bereits im Vorrat oder schon auf der Einkaufsliste!');
+        }
+    };
+
+    window.cookRecipe = async function(id) {
+        const rec = recipes.find(r => r.id === id);
+        if (!rec) return;
+
+        if (!confirm(`🍳 "${rec.title}" gekocht?\n\nAlle benötigten Zutaten werden jetzt automatisch vom Vorrat abgezogen und in die Jahresstatistik eingetragen.`)) {
+            return;
+        }
+
+        const emptyItems = [];
+
+        for (const ing of (rec.ingredients || [])) {
+            const search = ing.name.toLowerCase();
+            const match = inventory.find(item =>
+                item.name.toLowerCase().includes(search) || search.includes(item.name.toLowerCase())
+            );
+            if (!match) continue;
+
+            let deductQty = 1;
+            if (ing.amount) {
+                if (ing.unit === match.unit) {
+                    deductQty = ing.amount;
+                } else if (ing.unit === 'kg' && match.unit === 'g') {
+                    deductQty = ing.amount * 1000;
+                } else if (ing.unit === 'g' && match.unit === 'kg') {
+                    deductQty = ing.amount / 1000;
+                } else if (ing.unit === 'l' && match.unit === 'ml') {
+                    deductQty = ing.amount * 1000;
+                } else if (ing.unit === 'ml' && match.unit === 'l') {
+                    deductQty = ing.amount / 1000;
+                }
+            }
+
+            const actualConsumed = Math.min(match.amount, deductQty);
+            logConsumption(match, actualConsumed);
+
+            const remaining = Math.round((match.amount - deductQty) * 100) / 100;
+            const itemDoc = doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", match.id);
+
+            if (remaining <= 0) {
+                emptyItems.push(match);
+                await deleteDoc(itemDoc);
+            } else {
+                await updateDoc(itemDoc, { amount: remaining });
+            }
+        }
+
+        if (emptyItems.length > 0) {
+            const names = emptyItems.map(i => i.name).join(', ');
+            if (confirm(`✅ Vorrat wurde aktualisiert!\n\nFolgende Zutaten sind jetzt leer: ${names}\n\nSollen diese direkt auf die Einkaufsliste gesetzt werden?`)) {
+                for (const item of emptyItems) {
+                    await addDoc(einkaufRef, {
+                        name: item.name,
+                        note: 'Nachkauf',
+                        category: item.category || 'Sonstiges',
+                        location: item.location || 'Vorratsschrank',
+                        unit: item.unit || 'Stk.'
+                    });
+                }
+            }
+        } else {
+            alert('✅ Alle Zutaten wurden vom Vorrat abgezogen!');
+        }
+    };
+
+    function normalizeQty(amount, unit) {
+        if (unit === 'kg') return { qty: amount * 1000, baseUnit: 'g' };
+        if (unit === 'l') return { qty: amount * 1000, baseUnit: 'ml' };
+        return { qty: amount, baseUnit: unit };
+    }
+
+    function checkIngredientStock(ing) {
+        const search = ing.name.toLowerCase();
+        const matches = inventory.filter(item =>
+            item.name.toLowerCase().includes(search) || search.includes(item.name.toLowerCase())
+        );
+
+        if (matches.length === 0) {
+            return { status: 'missing', icon: '❌', label: 'Nicht im Vorrat' };
+        }
+
+        const locSummary = matches.map(m => `${m.amount} ${m.unit} (${m.location || 'Vorratsschrank'})`).join(', ');
+
+        if (!ing.amount) {
+            return { status: 'ok', icon: '✅', label: `Da: ${locSummary}` };
+        }
+
+        const reqNorm = normalizeQty(ing.amount, ing.unit);
+        let totalAvail = 0;
+        let sameUnit = true;
+
+        matches.forEach(m => {
+            const availNorm = normalizeQty(m.amount, m.unit);
+            if (availNorm.baseUnit === reqNorm.baseUnit) {
+                totalAvail += availNorm.qty;
+            } else {
+                sameUnit = false;
+            }
+        });
+
+        if (!sameUnit) {
+            return { status: 'ok', icon: '✅', label: `Da: ${locSummary}` };
+        }
+
+        if (totalAvail >= reqNorm.qty) {
+            return { status: 'ok', icon: '✅', label: `Da: ${locSummary}` };
+        } else {
+            return { status: 'warn', icon: '⚠️', label: `Zu wenig: ${locSummary}` };
+        }
+    }
+
+    function renderRecipes() {
+        const rawRecSearch = recipeSearchInput.value.trim();
+        const recSearchTerm = rawRecSearch.toLowerCase();
+        clearRecipeSearchBtn.style.display = rawRecSearch ? 'flex' : 'none';
+
+        // 1. Wochenplan-Box oben rendern
+        const plannedRecipes = recipes.filter(r => r.plannedThisWeek);
+        if (plannedRecipes.length > 0) {
+            const chips = plannedRecipes.map(r => `
+                <span class="week-chip">
+                    📌 ${r.title}
+                    <span style="cursor:pointer;" onclick="toggleWeekPlan('${r.id}')" title="Aus Wochenplan entfernen">✕</span>
+                </span>
+            `).join('');
+            weekPlanContainer.innerHTML = `
+                <div class="week-plan-box">
+                    <h3>📅 Euer Wochenspeiseplan (${plannedRecipes.length})</h3>
+                    <div class="week-chips">${chips}</div>
+                    <button type="button" class="add-btn" style="padding:9px; font-size:0.86rem;" onclick="addAllWeekMissingToShopping()">🛒 Alle fehlenden Zutaten auf Einkaufsliste</button>
+                </div>
+            `;
+        } else {
+            weekPlanContainer.innerHTML = '';
+        }
+
+        // 2. Rezepte nach Suchbegriff & Filter-Chip filtern
+        let filteredRecipes = recipes.filter(rec => {
+            const ings = rec.ingredients || [];
+            const titleMatch = (rec.title || '').toLowerCase().includes(recSearchTerm);
+            const notesMatch = (rec.notes || '').toLowerCase().includes(recSearchTerm);
+            const ingMatch = ings.some(i => (i.name || '').toLowerCase().includes(recSearchTerm));
+
+            if (recSearchTerm && !titleMatch && !notesMatch && !ingMatch) return false;
+
+            const allReady = ings.length > 0 && ings.every(i => checkIngredientStock(i).status === 'ok');
+
+            if (activeRecipeFilter === 'READY' && !allReady) return false;
+            if (activeRecipeFilter === 'WEEK' && !rec.plannedThisWeek) return false;
+            if (activeRecipeFilter === 'MISSING' && allReady) return false;
+
+            return true;
+        });
+
+        // 3. Rezeptkarten rendern
+        recipesContainer.innerHTML = '';
+        if (recipes.length === 0) {
+            recipesContainer.innerHTML = '<div class="empty-state">Noch keine eigenen Rezepte gespeichert. Klicke oben auf „➕ Eigenes Rezept speichern“!</div>';
+            return;
+        }
+        if (filteredRecipes.length === 0) {
+            recipesContainer.innerHTML = '<div class="empty-state">Keine passenden Rezepte für deine Auswahl gefunden.</div>';
+            return;
+        }
+
+        // Sortierung: Wochenplan zuerst, dann sofort kochbare Rezepte
+        filteredRecipes.sort((a, b) => {
+            if (a.plannedThisWeek && !b.plannedThisWeek) return -1;
+            if (!a.plannedThisWeek && b.plannedThisWeek) return 1;
+            const aReady = (a.ingredients || []).every(i => checkIngredientStock(i).status === 'ok');
+            const bReady = (b.ingredients || []).every(i => checkIngredientStock(i).status === 'ok');
+            if (aReady && !bReady) return -1;
+            if (!aReady && bReady) return 1;
+            return (a.title || '').localeCompare(b.title || '');
+        });
+
+        filteredRecipes.forEach(rec => {
+            const ings = rec.ingredients || [];
+            const allReady = ings.length > 0 && ings.every(i => checkIngredientStock(i).status === 'ok');
+
+            const card = document.createElement('div');
+            card.className = `recipe-card ${rec.plannedThisWeek ? 'planned-week' : ''} ${allReady ? 'all-ready' : ''}`;
+
+            let ingHtml = '<ul class="ing-list">';
+            ings.forEach(ing => {
+                const check = checkIngredientStock(ing);
+                const reqText = ing.amount ? `${ing.amount} ${ing.unit} ` : '';
+                const safeIngName = ing.name.replace(/'/g, "\\'");
+                const missingNote = ing.amount ? `Für ${rec.title} (${ing.amount} ${ing.unit})` : `Für ${rec.title}`;
+
+                ingHtml += `
+                    <li class="ing-row ${check.status}">
+                        <div>
+                            <strong>${check.icon} ${reqText}${ing.name}</strong>
+                            <div style="font-size:0.78rem; color:#4b5563;">${check.label}</div>
+                        </div>
+                        ${check.status !== 'ok' ? `<button type="button" class="mini-shop-btn" onclick="quickAddToShopping('${safeIngName}', 'Sonstiges', '${missingNote.replace(/'/g, "\\'")}')">+ Einkauf</button>` : ''}
+                    </li>
+                `;
+            });
+            ingHtml += '</ul>';
+
+            card.innerHTML = `
+                <div class="recipe-header">
+                    <div>
+                        <h3>🍽️ ${rec.title}</h3>
+                        ${allReady ? `<span class="badge badge-ready" style="margin-top:4px;">✅ Alle Zutaten da</span>` : ''}
+                    </div>
+                    <button type="button" class="icon-btn ${rec.plannedThisWeek ? 'opened-active' : ''}" onclick="toggleWeekPlan('${rec.id}')" title="Für diese Woche planen">📌</button>
+                    <button type="button" class="icon-btn" onclick="editRecipe('${rec.id}')" title="Rezept bearbeiten">✏️</button>
+                    <button type="button" class="icon-btn" onclick="deleteRecipe('${rec.id}')" title="Rezept löschen">🗑️</button>
+                </div>
+                ${ingHtml}
+                ${rec.notes ? `<div style="margin-top:10px; font-size:0.83rem; color:#4b5563; background:#f9fafb; padding:8px; border-radius:8px; white-space:pre-line;">📝 ${rec.notes}</div>` : ''}
+                <button type="button" class="cook-done-btn" onclick="cookRecipe('${rec.id}')">🍳 Rezept gekocht – Zutaten vom Vorrat abziehen</button>
+            `;
+            recipesContainer.appendChild(card);
+        });
+    }
+
+    recipeSearchInput.addEventListener('input', renderRecipes);
+    clearRecipeSearchBtn.addEventListener('click', () => {
+        recipeSearchInput.value = '';
+        renderRecipes();
+        recipeSearchInput.focus();
+    });
+
+    document.getElementById('aiRestPromptBtn').addEventListener('click', async () => {
         if (inventory.length === 0) {
             alert('Dein Vorratsschrank ist noch leer!');
             return;
@@ -1151,10 +2376,76 @@
 
         try {
             await navigator.clipboard.writeText(promptText);
-            alert(`🍳 Rezept-Anfrage in die Zwischenablage kopiert!\n\n"${promptText}"\n\nDu kannst sie jetzt direkt hier in Gemini einfügen.`);
+            alert(`🍳 Rezept-Anfrage in die Zwischenablage kopiert!\n\n"${promptText}"`);
         } catch (e) {
-            alert(`🍳 Deine nächsten Vorräte zum Verkochen:\n\n${topItems}`);
+            alert(`🍳 Vorräte zum Verkochen:\n\n${topItems}`);
         }
+    });
+
+    // --- SCHWEBENDE BUBBLES: STATISTIK & CSV-BACKUP ---
+    const statsModal = document.getElementById('statsModal');
+    const statsYearSelect = document.getElementById('statsYearSelect');
+    const statsContent = document.getElementById('statsContent');
+
+    function renderStatsModal(selectedYear) {
+        const data = yearlyStats[selectedYear];
+        if (!data || !data.items) {
+            statsContent.innerHTML = `<div class="empty-state" style="box-shadow:none;">Für <strong>${selectedYear}</strong> wurden noch keine Verbräuche gezählt. Sobald ihr im Vorrat auf „-“ tippt oder ein Rezept als gekocht markiert, füllt sich eure Jahresstatistik automatisch!</div>`;
+            return;
+        }
+
+        const itemArray = Object.values(data.items).sort((a, b) => b.count - a.count);
+        const top10 = itemArray.slice(0, 10);
+
+        let topCatText = '–';
+        if (data.categories) {
+            const sortedCats = Object.entries(data.categories).sort((a, b) => b[1] - a[1]);
+            if (sortedCats.length > 0) {
+                topCatText = `${categoryLabels[sortedCats[0][0]] || sortedCats[0][0]} (${sortedCats[0][1]}×)`;
+            }
+        }
+
+        let html = `
+            <div class="stat-highlight">
+                <span>Verbrauchte Portionen / Artikel in ${selectedYear}</span>
+                <strong>${data.totalActions || 0}×</strong>
+                <span style="font-size:0.82rem; color:#4b5563;">Top-Kategorie: ${topCatText}</span>
+            </div>
+            <h3 style="margin:12px 0 6px 0; font-size:1rem;">🥇 Eure Top-10 Dauerbrenner ${selectedYear}</h3>
+        `;
+
+        top10.forEach((entry, idx) => {
+            const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+            const roundedTotal = Math.round(entry.totalQty * 10) / 10;
+            html += `
+                <div class="rank-row">
+                    <span><strong>${medal} ${entry.name}</strong></span>
+                    <span>${entry.count}× (${roundedTotal} ${entry.unit})</span>
+                </div>
+            `;
+        });
+
+        statsContent.innerHTML = html;
+    }
+
+    document.getElementById('openStatsBtn').addEventListener('click', () => {
+        const currentYear = String(new Date().getFullYear());
+        const years = new Set([currentYear, ...Object.keys(yearlyStats)]);
+        statsYearSelect.innerHTML = '';
+        Array.from(years).sort((a, b) => b - a).forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = `Kalenderjahr ${y}`;
+            statsYearSelect.appendChild(opt);
+        });
+        renderStatsModal(statsYearSelect.value);
+        statsModal.classList.remove('hidden');
+    });
+
+    statsYearSelect.addEventListener('change', () => renderStatsModal(statsYearSelect.value));
+    document.getElementById('closeStatsBtn').addEventListener('click', () => statsModal.classList.add('hidden'));
+    statsModal.addEventListener('click', (e) => {
+        if (e.target === statsModal) statsModal.classList.add('hidden');
     });
 
     document.getElementById('exportCsvBtn').addEventListener('click', () => {
@@ -1162,7 +2453,7 @@
             alert('Keine Daten zum Exportieren vorhanden.');
             return;
         }
-        const headers = ['Artikel', 'Menge', 'Einheit', 'Kategorie', 'Lagerort', 'MHD', 'Mindestbestand'];
+        const headers = ['Artikel', 'Menge', 'Einheit', 'Kategorie', 'Lagerort', 'MHD', 'Mindestbestand', 'Angebrochen'];
         const rows = inventory.map(i => [
             `"${(i.name || '').replace(/"/g, '""')}"`,
             i.amount,
@@ -1170,7 +2461,8 @@
             `"${categoryLabels[i.category] || i.category}"`,
             `"${i.location || 'Vorratsschrank'}"`,
             `"${i.mhd || ''}"`,
-            i.minAmount || ''
+            i.minAmount || '',
+            i.isOpened ? 'Ja' : 'Nein'
         ].join(';'));
 
         const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
@@ -1183,7 +2475,41 @@
         URL.revokeObjectURL(url);
     });
 
-    // --- EINKAUFSLISTE (NACH SUPERMARKT-ABTEILUNG GRUPPIERT) ---
+    // --- EINKAUFSLISTE & WHATSAPP-EXPORT ---
+    document.getElementById('shareShoppingBtn').addEventListener('click', async () => {
+        if (shoppingItems.length === 0) {
+            alert('Die Einkaufsliste ist aktuell leer!');
+            return;
+        }
+
+        let lines = ['🛒 *Unsere Einkaufsliste*\n'];
+        supermarketOrder.forEach(catKey => {
+            const group = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey);
+            if (group.length > 0) {
+                lines.push(`*${categoryLabels[catKey] || catKey}*`);
+                group.forEach(item => {
+                    lines.push(`• ${item.name}${item.note ? ` (${item.note})` : ''}`);
+                });
+                lines.push('');
+            }
+        });
+
+        const text = lines.join('\n').trim();
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'Einkaufsliste', text });
+                return;
+            } catch (e) {}
+        }
+
+        try {
+            await navigator.clipboard.writeText(text);
+            alert('📋 Einkaufsliste in die Zwischenablage kopiert – du kannst sie jetzt direkt bei WhatsApp einfügen!');
+        } catch (e) {
+            alert(text);
+        }
+    });
+
     document.getElementById('shoppingForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const name = document.getElementById('shopName').value.trim();
@@ -1197,17 +2523,22 @@
         const item = shoppingItems.find(i => i.id === id);
         if (!item) return;
 
-        await deleteDoc(doc(db, "einkaufsliste", id));
+        await deleteDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste", id));
 
         if (moveToPantry) {
-            tabVorratBtn.click();
+            switchTab('VORRAT');
+            userTouchedMhd = false;
+            mhdHint.style.display = 'none';
+            mhdParsedPreview.textContent = '';
+            mhdIsoValue.value = '';
+            mhdCalendar.value = '';
             formCard.classList.remove('hidden');
             toggleFormBtn.classList.add('hidden');
             document.getElementById('name').value = item.name;
             document.getElementById('category').value = item.category || 'Sonstiges';
             document.getElementById('location').value = item.location || 'Vorratsschrank';
             document.getElementById('unit').value = item.unit || 'Stk.';
-            suggestStorageAndCategory(item.name);
+            suggestStorageAndCategory(item.name, '', 'category', 'location', true);
             showFeedback(`🛍️ "${item.name}" eingekauft! Jetzt nur noch Menge/MHD prüfen und speichern.`);
             formCard.scrollIntoView({ behavior: 'smooth' });
         }
@@ -1220,7 +2551,6 @@
             return;
         }
 
-        // Nach Supermarkt-Abteilung gruppieren
         supermarketOrder.forEach(catKey => {
             const groupItems = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey);
             if (groupItems.length === 0) return;
