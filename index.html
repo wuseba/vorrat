@@ -582,9 +582,14 @@
 
         .ing-builder-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
+            grid-template-columns: 2fr 0.9fr 1.1fr auto;
             gap: 6px;
             margin-bottom: 6px;
+        }
+
+        .ing-builder-row input, .ing-builder-row select {
+            padding: 9px 7px;
+            font-size: 0.9rem;
         }
 
         .import-bar {
@@ -726,7 +731,7 @@
                 <input type="hidden" id="lastScannedBarcode">
                 <input type="hidden" id="mhdIsoValue">
 
-                <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten, Hackfleisch, Äpfel)" required>
+                <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten, Hackfleisch, Hafermilch)" required>
                 
                 <div class="field-group">
                     <span class="field-label">Aktuelle Menge</span>
@@ -897,7 +902,7 @@
 
         <!-- REZEPT-SUCHE & FILTER-CHIPS -->
         <div class="search-box-wrapper">
-            <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Nudeln, Hack...)">
+            <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Kokosmilch, Hack...)">
             <button type="button" id="clearRecipeSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
         </div>
 
@@ -1268,6 +1273,19 @@
         const catEl = document.getElementById(targetCatId);
         const locEl = targetLocId ? document.getElementById(targetLocId) : null;
 
+        // Spezielle Milchsorten zuerst abfangen (damit Kokosmilch / Hafermilch nicht unter Molkerei landen)
+        if (nameLower.includes('kokosmilch') || nameLower.includes('kokoscreme')) {
+            if (catEl) catEl.value = 'Konserven';
+            if (locEl) locEl.value = 'Vorratsschrank';
+            return;
+        }
+        const plantMilks = ['hafermilch', 'haferdrink', 'sojamilch', 'sojadrink', 'mandelmilch', 'mandeldrink', 'reismilch', 'reisdrink', 'dinkelmilch', 'erbsenmilch', 'cashewmilch'];
+        if (plantMilks.some(w => nameLower.includes(w))) {
+            if (catEl) catEl.value = 'Getränke';
+            if (locEl) locEl.value = 'Vorratsschrank';
+            return;
+        }
+
         const meatFishWords = [
             'fleisch', 'hack', 'hackfleisch', 'rinderhack', 'schweinehack', 'hähnchen', 'hühnchen', 'pute', 'putenbrust',
             'schnitzel', 'steak', 'filet', 'gulasch', 'bratwurst', 'wurst', 'aufschnitt', 'schinken', 'salami', 'speck', 'bacon',
@@ -1350,7 +1368,7 @@
         }
 
         const dairyWords = [
-            'milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche',
+            'milch', 'kuhmilch', 'vollmilch', 'h-milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche',
             'mozzarella', 'parmesan', 'gouda', 'emmentaler', 'feta', 'mascarpone', 'ricotta', 'skyr', 'kefir', 'buttermilch',
             'en:dairies', 'en:milks', 'en:cheeses', 'en:yogurts'
         ];
@@ -1873,7 +1891,82 @@
     filterCategory.addEventListener('change', renderList);
     filterLocation.addEventListener('change', renderList);
 
-    // --- REZEPTE: SMART-PARSER (CIRCLE TO SEARCH & KAMERA-OCR) ---
+    // --- INTELLIGENTE ZUTATEN-ERKENNUNG (TRENNT Z.B. KOKOSMILCH, HAFERMILCH & KUHMILCH) ---
+    function classifyIngredientGroup(nameStr) {
+        const s = (nameStr || '').toLowerCase().trim();
+
+        // 1. Milch & Pflanzendrinks strikt nach Sorte trennen
+        if (s.includes('kokosmilch') || s.includes('kokosdrink')) return 'milk_coconut';
+        if (s.includes('hafermilch') || s.includes('haferdrink')) return 'milk_oat';
+        if (s.includes('sojamilch') || s.includes('sojadrink')) return 'milk_soy';
+        if (s.includes('mandelmilch') || s.includes('mandeldrink')) return 'milk_almond';
+        if (s.includes('reismilch') || s.includes('reisdrink')) return 'milk_rice';
+        if (s.includes('dinkelmilch') || s.includes('dinkeldrink')) return 'milk_spelt';
+        if (s.includes('erbsenmilch') || s.includes('erbsendrink')) return 'milk_pea';
+        if (s.includes('cashewmilch') || s.includes('cashewdrink')) return 'milk_cashew';
+        if (s.includes('kondensmilch')) return 'milk_condensed';
+        if (s.includes('buttermilch')) return 'milk_butter';
+        if (/\b(kuhmilch|vollmilch|frischmilch|h-milch|weidemilch|fettarme milch|milch)\b/.test(s)) return 'milk_cow';
+
+        // 2. Weitere häufig verwechselte Zutatenpaare trennen
+        if (s.includes('kokosöl') || s.includes('kokosfett')) return 'oil_coconut';
+        if (s.includes('olivenöl')) return 'oil_olive';
+        if (s.includes('rapsöl')) return 'oil_rapeseed';
+        if (s.includes('sonnenblumenöl')) return 'oil_sunflower';
+        if (s.includes('sesamöl')) return 'oil_sesame';
+
+        if (s.includes('apfelessig')) return 'vinegar_apple';
+        if (s.includes('balsamico')) return 'vinegar_balsamico';
+        if (s.includes('weißweinessig') || s.includes('rotweinessig')) return 'vinegar_wine';
+
+        if (s.includes('saure sahne') || s.includes('sauerrahm')) return 'cream_sour';
+        if (s.includes('schlagsahne') || s.includes('kochsalz') === false && /\bsahne\b/.test(s)) return 'cream_sweet';
+
+        if (s.includes('puderzucker')) return 'sugar_powder';
+        if (s.includes('vanillezucker') || s.includes('vanillinzucker')) return 'sugar_vanilla';
+        if (s.includes('brauner zucker') || s.includes('rohrzucker')) return 'sugar_brown';
+        if (/\bzucker\b/.test(s)) return 'sugar_white';
+
+        if (s.includes('dinkelmehl')) return 'flour_spelt';
+        if (s.includes('vollkornmehl')) return 'flour_whole';
+        if (s.includes('kartoffelmehl') || s.includes('maisstärke') || s.includes('speisestärke')) return 'starch';
+        if (/\b(weizenmehl|mehl)\b/.test(s)) return 'flour_wheat';
+
+        if (s.includes('frühlingszwiebel') || s.includes('lauchzwiebel')) return 'onion_spring';
+        if (s.includes('rote zwiebel')) return 'onion_red';
+        if (/\bzwiebel/.test(s)) return 'onion_regular';
+
+        if (s.includes('passierte tomaten') || s.includes('gehackte tomaten') || s.includes('dosentomaten') || s.includes('geschälte tomaten')) return 'tomato_canned';
+        if (s.includes('tomatenmark')) return 'tomato_paste';
+        if (/\btomate/.test(s)) return 'tomato_fresh';
+
+        return null;
+    }
+
+    function findMatchingPantryItems(ingredientName) {
+        const reqName = (ingredientName || '').toLowerCase().trim();
+        if (!reqName) return [];
+
+        const reqGroup = classifyIngredientGroup(reqName);
+
+        return inventory.filter(item => {
+            const itemName = (item.name || '').toLowerCase().trim();
+            if (!itemName) return false;
+
+            const itemGroup = classifyIngredientGroup(itemName);
+
+            // Wenn mindestens eines der beiden zu einer spezifischen Sortengruppe gehört (z.B. Kokosmilch vs. Kuhmilch),
+            // müssen beide exakt in derselben Gruppe sein!
+            if (reqGroup !== null || itemGroup !== null) {
+                return reqGroup !== null && reqGroup === itemGroup;
+            }
+
+            // Standard-Abgleich für alle übrigen Zutaten
+            return itemName.includes(reqName) || reqName.includes(itemName);
+        });
+    }
+
+    // --- REZEPTE: SMART-PARSER & ZUTATEN-EINHEITEN (INKL. TL, EL, PRISE, BUND, ZEHE) ---
     const toggleRecipeFormBtn = document.getElementById('toggleRecipeFormBtn');
     const recipeFormCard = document.getElementById('recipeFormCard');
     const ingredientRows = document.getElementById('ingredientRows');
@@ -1883,7 +1976,7 @@
         const row = document.createElement('div');
         row.className = 'ing-builder-row';
         row.innerHTML = `
-            <input type="text" class="ing-name" placeholder="Zutat (z.B. Hackfleisch)" value="${name.replace(/"/g, '&quot;')}" required>
+            <input type="text" class="ing-name" placeholder="Zutat (z.B. Hafermilch, Salz)" value="${name.replace(/"/g, '&quot;')}" required>
             <input type="number" class="ing-amount" placeholder="Menge" value="${amount}" min="0" step="any">
             <select class="ing-unit">
                 <option value="Stk." ${unit==='Stk.'?'selected':''}>Stk.</option>
@@ -1891,6 +1984,11 @@
                 <option value="kg" ${unit==='kg'?'selected':''}>kg</option>
                 <option value="ml" ${unit==='ml'?'selected':''}>ml</option>
                 <option value="l" ${unit==='l'?'selected':''}>l</option>
+                <option value="TL" ${unit==='TL'?'selected':''}>TL</option>
+                <option value="EL" ${unit==='EL'?'selected':''}>EL</option>
+                <option value="Prise" ${unit==='Prise'?'selected':''}>Prise</option>
+                <option value="Bund" ${unit==='Bund'?'selected':''}>Bund</option>
+                <option value="Zehe" ${unit==='Zehe'?'selected':''}>Zehe</option>
                 <option value="Dosen" ${unit==='Dosen'?'selected':''}>Dosen</option>
             </select>
             <button type="button" class="icon-btn" onclick="this.parentElement.remove()" title="Zeile entfernen">✕</button>
@@ -1907,7 +2005,7 @@
         const stepLines = [];
         let inStepsSection = false;
 
-        const ingRegex = /^[-•*]?\s*(\d+(?:[.,]\d+)?)\s*(g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|dose|dosen|glas|gläser|stk\.?|stück|packung|pck\.?|el|tl|prise|bund|zehe|zehen)?\s+(.+)$/i;
+        const ingRegex = /^[-•*]?\s*(\d+(?:[.,]\d+)?)\s*(g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|tl|teelöffel|el|esslöffel|prise|prisen|bund|zehe|zehen|dose|dosen|glas|gläser|stk\.?|stück|packung|pck\.?)?\s+(.+)$/i;
 
         lines.forEach((line, idx) => {
             const lower = line.toLowerCase();
@@ -1932,21 +2030,21 @@
                     const num = parseFloat(match[1].replace(',', '.'));
                     const rawUnit = (match[2] || '').toLowerCase();
                     let mappedUnit = 'Stk.';
-                    let finalAmount = num;
 
                     if (['g', 'gr', 'gramm'].includes(rawUnit)) mappedUnit = 'g';
                     else if (['kg', 'kilogramm'].includes(rawUnit)) mappedUnit = 'kg';
                     else if (['ml', 'milliliter'].includes(rawUnit)) mappedUnit = 'ml';
                     else if (['l', 'liter'].includes(rawUnit)) mappedUnit = 'l';
+                    else if (['tl', 'teelöffel'].includes(rawUnit)) mappedUnit = 'TL';
+                    else if (['el', 'esslöffel'].includes(rawUnit)) mappedUnit = 'EL';
+                    else if (['prise', 'prisen'].includes(rawUnit)) mappedUnit = 'Prise';
+                    else if (rawUnit === 'bund') mappedUnit = 'Bund';
+                    else if (['zehe', 'zehen'].includes(rawUnit)) mappedUnit = 'Zehe';
                     else if (['dose', 'dosen', 'glas', 'gläser'].includes(rawUnit)) mappedUnit = 'Dosen';
-                    else if (['el', 'tl', 'prise', 'bund', 'zehe', 'zehen'].includes(rawUnit)) {
-                        parsedIngredients.push({ name: `${num} ${match[2]} ${match[3]}`, amount: '', unit: 'Stk.' });
-                        return;
-                    }
 
                     parsedIngredients.push({
                         name: match[3].trim(),
-                        amount: !isNaN(finalAmount) ? finalAmount : '',
+                        amount: !isNaN(num) ? num : '',
                         unit: mappedUnit
                     });
                     return;
@@ -2020,7 +2118,7 @@
         document.getElementById('saveRecipeBtn').textContent = '💾 Rezept speichern';
         if (ingredientRows.children.length === 0) {
             addIngredientInputRow('', '', 'g');
-            addIngredientInputRow('', '', 'Stk.');
+            addIngredientInputRow('', '', 'EL');
         }
     });
 
@@ -2033,7 +2131,7 @@
         ingredientRows.innerHTML = '';
     });
 
-    document.getElementById('addIngRowBtn').addEventListener('click', () => addIngredientInputRow('', '', 'Stk.'));
+    document.getElementById('addIngRowBtn').addEventListener('click', () => addIngredientInputRow('', '', 'TL'));
 
     document.getElementById('recipeForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -2120,7 +2218,7 @@
                             note: note,
                             category: 'Sonstiges',
                             location: 'Vorratsschrank',
-                            unit: ing.unit || 'Stk.'
+                            unit: 'Stk.'
                         });
                         addedCount++;
                     }
@@ -2135,6 +2233,36 @@
         }
     };
 
+    function convertRecipeAmountToPantryUnit(recAmount, recUnit, pantryUnit) {
+        if (!recAmount) return 1;
+        if (recUnit === pantryUnit) return recAmount;
+
+        const isMetricSmall = (u) => u === 'g' || u === 'ml';
+        const isMetricLarge = (u) => u === 'kg' || u === 'l';
+
+        if (recUnit === 'kg' && pantryUnit === 'g') return recAmount * 1000;
+        if (recUnit === 'g' && pantryUnit === 'kg') return recAmount / 1000;
+        if (recUnit === 'l' && pantryUnit === 'ml') return recAmount * 1000;
+        if (recUnit === 'ml' && pantryUnit === 'l') return recAmount / 1000;
+
+        if (recUnit === 'TL') {
+            if (isMetricSmall(pantryUnit)) return recAmount * 5;
+            if (isMetricLarge(pantryUnit)) return (recAmount * 5) / 1000;
+            return 0;
+        }
+        if (recUnit === 'EL') {
+            if (isMetricSmall(pantryUnit)) return recAmount * 15;
+            if (isMetricLarge(pantryUnit)) return (recAmount * 15) / 1000;
+            return 0;
+        }
+        if (recUnit === 'Prise') {
+            if (isMetricSmall(pantryUnit)) return recAmount * 1;
+            if (isMetricLarge(pantryUnit)) return (recAmount * 1) / 1000;
+            return 0;
+        }
+        return recAmount;
+    }
+
     window.cookRecipe = async function(id) {
         const rec = recipes.find(r => r.id === id);
         if (!rec) return;
@@ -2146,26 +2274,12 @@
         const emptyItems = [];
 
         for (const ing of (rec.ingredients || [])) {
-            const search = ing.name.toLowerCase();
-            const match = inventory.find(item =>
-                item.name.toLowerCase().includes(search) || search.includes(item.name.toLowerCase())
-            );
+            const matches = findMatchingPantryItems(ing.name);
+            const match = matches[0];
             if (!match) continue;
 
-            let deductQty = 1;
-            if (ing.amount) {
-                if (ing.unit === match.unit) {
-                    deductQty = ing.amount;
-                } else if (ing.unit === 'kg' && match.unit === 'g') {
-                    deductQty = ing.amount * 1000;
-                } else if (ing.unit === 'g' && match.unit === 'kg') {
-                    deductQty = ing.amount / 1000;
-                } else if (ing.unit === 'l' && match.unit === 'ml') {
-                    deductQty = ing.amount * 1000;
-                } else if (ing.unit === 'ml' && match.unit === 'l') {
-                    deductQty = ing.amount / 1000;
-                }
-            }
+            const deductQty = convertRecipeAmountToPantryUnit(ing.amount, ing.unit, match.unit);
+            if (deductQty <= 0) continue;
 
             const actualConsumed = Math.min(match.amount, deductQty);
             logConsumption(match, actualConsumed);
@@ -2200,25 +2314,29 @@
     };
 
     function normalizeQty(amount, unit) {
-        if (unit === 'kg') return { qty: amount * 1000, baseUnit: 'g' };
-        if (unit === 'l') return { qty: amount * 1000, baseUnit: 'ml' };
+        if (unit === 'kg') return { qty: amount * 1000, baseUnit: 'mass_vol' };
+        if (unit === 'l') return { qty: amount * 1000, baseUnit: 'mass_vol' };
+        if (unit === 'g' || unit === 'ml') return { qty: amount, baseUnit: 'mass_vol' };
+        if (unit === 'TL') return { qty: amount * 5, baseUnit: 'mass_vol' };
+        if (unit === 'EL') return { qty: amount * 15, baseUnit: 'mass_vol' };
+        if (unit === 'Prise') return { qty: amount * 1, baseUnit: 'mass_vol' };
         return { qty: amount, baseUnit: unit };
     }
 
     function checkIngredientStock(ing) {
-        const search = ing.name.toLowerCase();
-        const matches = inventory.filter(item =>
-            item.name.toLowerCase().includes(search) || search.includes(item.name.toLowerCase())
-        );
+        const matches = findMatchingPantryItems(ing.name);
 
         if (matches.length === 0) {
             return { status: 'missing', icon: '❌', label: 'Nicht im Vorrat' };
         }
 
-        const locSummary = matches.map(m => `${m.amount} ${m.unit} (${m.location || 'Vorratsschrank'})`).join(', ');
+        const locSummary = matches.map(m => `${m.amount} ${m.unit} ${m.name} (${m.location || 'Vorratsschrank'})`).join(', ');
 
-        if (!ing.amount) {
-            return { status: 'ok', icon: '✅', label: `Da: ${locSummary}` };
+        if (!ing.amount || ['TL', 'EL', 'Prise'].includes(ing.unit)) {
+            const hasMassVolMatch = matches.some(m => normalizeQty(m.amount, m.unit).baseUnit === 'mass_vol');
+            if (!hasMassVolMatch) {
+                return { status: 'ok', icon: '✅', label: `Da: ${locSummary}` };
+            }
         }
 
         const reqNorm = normalizeQty(ing.amount, ing.unit);
@@ -2250,7 +2368,6 @@
         const recSearchTerm = rawRecSearch.toLowerCase();
         clearRecipeSearchBtn.style.display = rawRecSearch ? 'flex' : 'none';
 
-        // 1. Wochenplan-Box oben rendern
         const plannedRecipes = recipes.filter(r => r.plannedThisWeek);
         if (plannedRecipes.length > 0) {
             const chips = plannedRecipes.map(r => `
@@ -2270,7 +2387,6 @@
             weekPlanContainer.innerHTML = '';
         }
 
-        // 2. Rezepte nach Suchbegriff & Filter-Chip filtern
         let filteredRecipes = recipes.filter(rec => {
             const ings = rec.ingredients || [];
             const titleMatch = (rec.title || '').toLowerCase().includes(recSearchTerm);
@@ -2288,7 +2404,6 @@
             return true;
         });
 
-        // 3. Rezeptkarten rendern
         recipesContainer.innerHTML = '';
         if (recipes.length === 0) {
             recipesContainer.innerHTML = '<div class="empty-state">Noch keine eigenen Rezepte gespeichert. Klicke oben auf „➕ Eigenes Rezept speichern“!</div>';
@@ -2299,7 +2414,6 @@
             return;
         }
 
-        // Sortierung: Wochenplan zuerst, dann sofort kochbare Rezepte
         filteredRecipes.sort((a, b) => {
             if (a.plannedThisWeek && !b.plannedThisWeek) return -1;
             if (!a.plannedThisWeek && b.plannedThisWeek) return 1;
