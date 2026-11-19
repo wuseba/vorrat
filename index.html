@@ -78,16 +78,29 @@
             border: none;
             border-radius: 10px 10px 0 0;
             padding: 10px 6px;
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
 
         .tab-btn.active {
             background: #f3f4f6;
             color: var(--primary);
+        }
+
+        .tab-warn-badge {
+            background: #f59e0b;
+            color: #1f2937;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 10px;
         }
 
         .container {
@@ -379,6 +392,12 @@
             color: white;
         }
 
+        .chip-btn.staple {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
         .filters {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -410,6 +429,15 @@
         .item-card.low-stock { border-left-color: #eab308; background-color: rgba(254, 252, 232, 0.95); }
         .item-card.expiring-soon { border-left-color: var(--warning); }
         .item-card.expired { border-left-color: var(--danger); background-color: rgba(255, 240, 240, 0.95); }
+        .item-card.in-cart {
+            opacity: 0.72;
+            border-left-color: var(--success);
+            background-color: rgba(240, 253, 244, 0.92);
+        }
+        .item-card.in-cart h3 {
+            text-decoration: line-through;
+            color: #4b5563;
+        }
 
         .item-info { flex: 1; min-width: 0; }
         .item-info h3 { margin: 0 0 6px 0; font-size: 1.02rem; word-wrap: break-word; }
@@ -429,6 +457,7 @@
         .badge-low { background: #fef08a; color: #854d0e; }
         .badge-opened { background: #ede9fe; color: var(--opened); }
         .badge-ready { background: #dcfce7; color: var(--success); }
+        .badge-tag { background: #f3f4f6; color: #374151; }
 
         .controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
         .qty-btn, .icon-btn {
@@ -443,9 +472,20 @@
         .icon-btn.opened-active { background: #ede9fe; border-color: var(--opened); color: var(--opened); }
 
         .buy-btn {
-            width: auto; padding: 8px 12px; border-radius: 8px;
+            width: auto; padding: 8px 11px; border-radius: 8px;
             background: var(--success); color: white; border: none;
-            font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+        }
+
+        .cart-toggle-btn {
+            width: auto; padding: 8px 10px; border-radius: 8px;
+            background: #e5e7eb; color: #1f2937; border: none;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+        }
+
+        .cart-toggle-btn.checked {
+            background: #bbf7d0;
+            color: #14532d;
         }
 
         .qty-display { font-weight: bold; min-width: 46px; text-align: center; font-size: 0.88rem; }
@@ -463,6 +503,19 @@
             font-weight: bold;
             margin: 14px 0 8px 0;
             letter-spacing: 0.3px;
+        }
+
+        .cart-banner {
+            background: rgba(220, 252, 231, 0.96);
+            border: 2px solid var(--success);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
         }
 
         .week-plan-box {
@@ -519,15 +572,41 @@
         .recipe-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            gap: 8px;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            gap: 6px;
         }
 
         .recipe-header h3 {
             margin: 0;
             font-size: 1.08rem;
             flex: 1;
+        }
+
+        .servings-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f3f4f6;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .serv-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid #d1d5db;
+            background: white;
+            font-weight: bold;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .ing-list {
@@ -567,6 +646,30 @@
             white-space: nowrap;
         }
 
+        .steps-box {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: #374151;
+            background: #f9fafb;
+            padding: 8px 10px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .step-line {
+            cursor: pointer;
+            padding: 3px 4px;
+            border-radius: 4px;
+            transition: opacity 0.15s;
+        }
+
+        .step-line.done {
+            text-decoration: line-through;
+            opacity: 0.45;
+        }
+
         .cook-done-btn {
             width: 100%;
             margin-top: 10px;
@@ -592,6 +695,30 @@
             font-size: 0.9rem;
         }
 
+        .tag-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .tag-toggle {
+            width: auto;
+            padding: 5px 10px;
+            border-radius: 16px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tag-toggle.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
         .import-bar {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -612,6 +739,36 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
+        }
+
+        .wake-lock-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.83rem;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        .wake-btn {
+            width: auto;
+            padding: 5px 11px;
+            border-radius: 16px;
+            border: none;
+            background: #e5e7eb;
+            color: #1f2937;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .wake-btn.active {
+            background: var(--success);
+            color: white;
         }
 
         .floating-bubbles {
@@ -698,13 +855,18 @@
 </head>
 <body>
 
+<datalist id="pantrySuggestions"></datalist>
+
 <header>
     <div class="header-top">
         <h1>🥫 Unser Vorrat</h1>
         <span id="syncStatus" class="sync-status">⏳ Verbinde...</span>
     </div>
     <div class="tabs">
-        <button type="button" id="tabVorratBtn" class="tab-btn active">📦 Vorrat (<span id="vorratCount">0</span>)</button>
+        <button type="button" id="tabVorratBtn" class="tab-btn active">
+            📦 Vorrat (<span id="vorratCount">0</span>)
+            <span id="vorratAlertBadge" class="tab-warn-badge hidden">0</span>
+        </button>
         <button type="button" id="tabEinkaufBtn" class="tab-btn">🛒 Einkauf (<span id="einkaufCount">0</span>)</button>
         <button type="button" id="tabRezepteBtn" class="tab-btn">📖 Rezepte (<span id="rezepteCount">0</span>)</button>
     </div>
@@ -731,7 +893,7 @@
                 <input type="hidden" id="lastScannedBarcode">
                 <input type="hidden" id="mhdIsoValue">
 
-                <input type="text" id="name" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten, Hackfleisch, Hafermilch)" required>
+                <input type="text" id="name" list="pantrySuggestions" class="full-width" placeholder="Artikel (z.B. Passierte Tomaten, Kokosmilch, Hafermilch)" required>
                 
                 <div class="field-group">
                     <span class="field-label">Aktuelle Menge</span>
@@ -850,7 +1012,7 @@
                 <button type="button" id="shareShoppingBtn" class="scan-btn" title="Liste teilen oder für WhatsApp kopieren">📤 Teilen</button>
             </div>
             <form id="shoppingForm" class="form-grid">
-                <input type="text" id="shopName" class="full-width" placeholder="Was fehlt? (z.B. Vollmilch)" required>
+                <input type="text" id="shopName" list="pantrySuggestions" class="full-width" placeholder="Was fehlt? (z.B. Vollmilch)" required>
                 <select id="shopCategory">
                     <option value="ObstGemuese">🥦 Obst & Gemüse</option>
                     <option value="FleischFisch">🥩 Fleisch & Fisch</option>
@@ -866,6 +1028,12 @@
                 <button type="submit" class="add-btn full-width">+ Auf die Liste</button>
             </form>
         </div>
+
+        <!-- SCHNELL-CHIPS FÜR DAUERBRENNER AUS DER STATISTIK -->
+        <div id="staplesRow" class="chip-row hidden"></div>
+
+        <!-- BANNER WENN ARTIKEL IM EINKAUFSWAGEN LIEGEN -->
+        <div id="inCartBanner" class="cart-banner hidden"></div>
 
         <div id="shoppingList"></div>
     </div>
@@ -891,18 +1059,39 @@
 
             <form id="recipeForm">
                 <input type="hidden" id="editRecipeId">
-                <input type="text" id="recTitle" placeholder="Rezeptname (z.B. Spaghetti Bolognese)" style="margin-bottom:10px;" required>
+                <div class="form-grid" style="margin-bottom:10px;">
+                    <input type="text" id="recTitle" placeholder="Rezeptname (z.B. Spaghetti Bolognese)" required>
+                    <div class="field-group">
+                        <input type="number" id="recServings" value="4" min="1" max="20" placeholder="Portionen" title="Anzahl Portionen">
+                    </div>
+                </div>
+
+                <div class="field-label" style="margin-bottom:5px;">Kategorie / Tags (optional):</div>
+                <div id="recipeTagSelector" class="tag-selector">
+                    <button type="button" class="tag-toggle" data-tag="Schnell">⚡ Schnell</button>
+                    <button type="button" class="tag-toggle" data-tag="Vegetarisch">🥦 Vegetarisch</button>
+                    <button type="button" class="tag-toggle" data-tag="Grillen">🔥 Grillen / BBQ</button>
+                    <button type="button" class="tag-toggle" data-tag="Familie">👶 Familie / Kind</button>
+                    <button type="button" class="tag-toggle" data-tag="Einfrierbar">🧊 Einfrierbar</button>
+                </div>
+
                 <div class="field-label" style="margin-bottom:6px;">Zutaten (für automatischen Vorrats-Check & Abzug):</div>
                 <div id="ingredientRows"></div>
                 <button type="button" id="addIngRowBtn" class="chip-btn" style="margin: 6px 0 12px 0; background:#e5e7eb;">+ Weitere Zutat</button>
-                <textarea id="recNotes" rows="3" placeholder="Zubereitungsschritte / Notizen (optional)" style="margin-bottom:10px;"></textarea>
+                <textarea id="recNotes" rows="3" placeholder="Zubereitungsschritte (jede Zeile beim Kochen abhakbar)" style="margin-bottom:10px;"></textarea>
                 <button type="submit" id="saveRecipeBtn" class="add-btn">💾 Rezept speichern</button>
             </form>
         </div>
 
+        <!-- DISPLAY-WACHHALTE-MODUS FÜR DIE KÜCHE -->
+        <div class="wake-lock-bar">
+            <span>📱 Display beim Kochen anlassen</span>
+            <button type="button" id="wakeLockBtn" class="wake-btn">Aus</button>
+        </div>
+
         <!-- REZEPT-SUCHE & FILTER-CHIPS -->
         <div class="search-box-wrapper">
-            <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Kokosmilch, Hack...)">
+            <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Kokosmilch, Brokkoli...)">
             <button type="button" id="clearRecipeSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
         </div>
 
@@ -911,6 +1100,11 @@
             <button type="button" id="recChipReady" class="chip-btn">✅ Sofort kochbar</button>
             <button type="button" id="recChipWeek" class="chip-btn">📌 Wochenplan</button>
             <button type="button" id="recChipMissing" class="chip-btn">⚠️ Etwas fehlt</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Schnell">⚡ Schnell</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Vegetarisch">🥦 Vegetarisch</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Grillen">🔥 Grillen</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Familie">👶 Familie</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Einfrierbar">🧊 Einfrierbar</button>
         </div>
 
         <div style="margin-bottom:12px;">
@@ -970,7 +1164,10 @@
     let yearlyStats = {};
     let activeQuickFilter = 'ALL';
     let activeRecipeFilter = 'ALL';
+    let activeRecipeTagFilter = '';
     let userTouchedMhd = false;
+    let recipeServingsOverride = {}; // speichert pro Rezept-ID die aktuell gewählte Portionszahl
+    let wakeLockSentinel = null;
 
     const form = document.getElementById('addForm');
     const formCard = document.getElementById('formCard');
@@ -1005,9 +1202,45 @@
         'Sonstiges': '📦 Sonstiges'
     };
 
+    const recipeTagLabels = {
+        'Schnell': '⚡ Schnell',
+        'Vegetarisch': '🥦 Vegetarisch',
+        'Grillen': '🔥 Grillen / BBQ',
+        'Familie': '👶 Familie / Kind',
+        'Einfrierbar': '🧊 Einfrierbar'
+    };
+
     const supermarketOrder = [
         'ObstGemuese', 'FleischFisch', 'Molkerei', 'Konserven', 'Trockenwaren', 'Gewürze', 'Backen', 'Getränke', 'Sonstiges'
     ];
+
+    // --- SCREEN WAKE LOCK (DISPLAY BEIM KOCHEN ANLASSEN) ---
+    const wakeLockBtn = document.getElementById('wakeLockBtn');
+    wakeLockBtn.addEventListener('click', async () => {
+        if (!('wakeLock' in navigator)) {
+            alert('Dein Browser unterstützt den Display-Wachhaltemodus leider nicht.');
+            return;
+        }
+        if (wakeLockSentinel) {
+            await wakeLockSentinel.release();
+            wakeLockSentinel = null;
+            wakeLockBtn.textContent = 'Aus';
+            wakeLockBtn.classList.remove('active');
+        } else {
+            try {
+                wakeLockSentinel = await navigator.wakeLock.request('screen');
+                wakeLockBtn.textContent = 'An 🔆';
+                wakeLockBtn.classList.add('active');
+                wakeLockSentinel.addEventListener('release', () => {
+                    wakeLockSentinel = null;
+                    wakeLockBtn.textContent = 'Aus';
+                    wakeLockBtn.classList.remove('active');
+                });
+            } catch (err) {
+                alert('Display-Wachhaltemodus konnte nicht aktiviert werden.');
+            }
+        }
+    });
 
     // --- KOMBINIERTES MHD-SYSTEM (TEXTFELD + KALENDER SYNCHRON) ---
     function parseFlexibleDateToIso(rawStr) {
@@ -1210,6 +1443,7 @@
         } else if (activeTab === 'EINKAUF') {
             tabEinkaufBtn.classList.add('active');
             viewEinkauf.classList.remove('hidden');
+            renderStaplesRow();
         } else if (activeTab === 'REZEPTE') {
             tabRezepteBtn.classList.add('active');
             viewRezepte.classList.remove('hidden');
@@ -1241,7 +1475,7 @@
     chipExpiring.addEventListener('click', () => setQuickFilter('EXPIRING'));
     chipLow.addEventListener('click', () => setQuickFilter('LOW'));
 
-    // Rezept-Chips
+    // Rezept-Chips (Status & Tags)
     const recChipAll = document.getElementById('recChipAll');
     const recChipReady = document.getElementById('recChipReady');
     const recChipWeek = document.getElementById('recChipWeek');
@@ -1249,10 +1483,12 @@
 
     function setRecipeFilter(mode) {
         activeRecipeFilter = mode;
+        activeRecipeTagFilter = '';
         recChipAll.classList.toggle('active', mode === 'ALL');
         recChipReady.classList.toggle('active', mode === 'READY');
         recChipWeek.classList.toggle('active', mode === 'WEEK');
         recChipMissing.classList.toggle('active', mode === 'MISSING');
+        document.querySelectorAll('.rec-tag-filter').forEach(b => b.classList.remove('active'));
         renderRecipes();
     }
 
@@ -1261,29 +1497,36 @@
     recChipWeek.addEventListener('click', () => setRecipeFilter('WEEK'));
     recChipMissing.addEventListener('click', () => setRecipeFilter('MISSING'));
 
+    document.querySelectorAll('.rec-tag-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.dataset.tag;
+            if (activeRecipeTagFilter === tag) {
+                setRecipeFilter('ALL');
+            } else {
+                activeRecipeFilter = 'ALL';
+                activeRecipeTagFilter = tag;
+                [recChipAll, recChipReady, recChipWeek, recChipMissing].forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.rec-tag-filter').forEach(b => b.classList.toggle('active', b.dataset.tag === tag));
+                renderRecipes();
+            }
+        });
+    });
+
     // --- KATEGORIE-, LAGERORT- & MHD-ERKENNUNG ---
-    function suggestStorageAndCategory(productName, barcodeTags = '', targetCatId = 'category', targetLocId = 'location', suggestMhd = true) {
-        const nameLower = productName.toLowerCase();
-        const cleanTags = barcodeTags
+    function detectCategoryAndLocation(productName, barcodeTags = '') {
+        const nameLower = (productName || '').toLowerCase();
+        const cleanTags = (barcodeTags || '')
             .toLowerCase()
             .replace(/plant-based-foods-and-beverages/g, '')
             .replace(/beverages-and-beverages-preparations/g, '');
         const text = `${nameLower} ${cleanTags}`;
 
-        const catEl = document.getElementById(targetCatId);
-        const locEl = targetLocId ? document.getElementById(targetLocId) : null;
-
-        // Spezielle Milchsorten zuerst abfangen (damit Kokosmilch / Hafermilch nicht unter Molkerei landen)
         if (nameLower.includes('kokosmilch') || nameLower.includes('kokoscreme')) {
-            if (catEl) catEl.value = 'Konserven';
-            if (locEl) locEl.value = 'Vorratsschrank';
-            return;
+            return { category: 'Konserven', location: 'Vorratsschrank', mhdDays: null };
         }
         const plantMilks = ['hafermilch', 'haferdrink', 'sojamilch', 'sojadrink', 'mandelmilch', 'mandeldrink', 'reismilch', 'reisdrink', 'dinkelmilch', 'erbsenmilch', 'cashewmilch'];
         if (plantMilks.some(w => nameLower.includes(w))) {
-            if (catEl) catEl.value = 'Getränke';
-            if (locEl) locEl.value = 'Vorratsschrank';
-            return;
+            return { category: 'Getränke', location: 'Vorratsschrank', mhdDays: null };
         }
 
         const meatFishWords = [
@@ -1294,17 +1537,16 @@
 
         const freezerWords = ['tk', 'tiefkühl', 'eis', 'pommes', 'kroketten', 'fischstäbchen', 'gefroren', 'en:frozen', 'ice-cream', 'pizza'];
         if (freezerWords.some(w => text.includes(w))) {
-            if (locEl) locEl.value = 'Gefriertruhe';
-            if (meatFishWords.some(w => text.includes(w)) && catEl) catEl.value = 'FleischFisch';
-            if (suggestMhd) setSuggestedMhd(90, 'Tiefkühlware');
-            return;
+            return {
+                category: meatFishWords.some(w => text.includes(w)) ? 'FleischFisch' : 'Sonstiges',
+                location: 'Gefriertruhe',
+                mhdDays: 90,
+                mhdReason: 'Tiefkühlware'
+            };
         }
 
         if (meatFishWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'FleischFisch';
-            if (locEl) locEl.value = 'Kühlschrank';
-            if (suggestMhd) setSuggestedMhd(2, 'frisches Fleisch/Fisch');
-            return;
+            return { category: 'FleischFisch', location: 'Kühlschrank', mhdDays: 2, mhdReason: 'frisches Fleisch/Fisch' };
         }
 
         const bakingWords = [
@@ -1314,9 +1556,11 @@
             'en:nuts', 'en:baking-ingredients', 'en:dried-fruits'
         ];
         if (bakingWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'Backen';
-            if (locEl) locEl.value = nameLower.includes('frische hefe') ? 'Kühlschrank' : 'Vorratsschrank';
-            return;
+            return {
+                category: 'Backen',
+                location: nameLower.includes('frische hefe') ? 'Kühlschrank' : 'Vorratsschrank',
+                mhdDays: null
+            };
         }
 
         const shortFridgeProduce = [
@@ -1342,28 +1586,16 @@
 
         if (!isCannedOrJar) {
             if (shortFridgeProduce.some(w => text.includes(w))) {
-                if (catEl) catEl.value = 'ObstGemuese';
-                if (locEl) locEl.value = 'Kühlschrank';
-                if (suggestMhd) setSuggestedMhd(3, 'empfindliches Frischprodukt');
-                return;
+                return { category: 'ObstGemuese', location: 'Kühlschrank', mhdDays: 3, mhdReason: 'empfindliches Frischprodukt' };
             }
             if (longFridgeProduce.some(w => text.includes(w))) {
-                if (catEl) catEl.value = 'ObstGemuese';
-                if (locEl) locEl.value = 'Kühlschrank';
-                if (suggestMhd) setSuggestedMhd(7, 'Kühlschrank-Gemüse/-Obst');
-                return;
+                return { category: 'ObstGemuese', location: 'Kühlschrank', mhdDays: 7, mhdReason: 'Kühlschrank-Gemüse/-Obst' };
             }
             if (cellarProduce.some(w => text.includes(w))) {
-                if (catEl) catEl.value = 'ObstGemuese';
-                if (locEl) locEl.value = 'Keller';
-                if (suggestMhd) setSuggestedMhd(21, 'Lagerobst/-gemüse');
-                return;
+                return { category: 'ObstGemuese', location: 'Keller', mhdDays: 21, mhdReason: 'Lagerobst/-gemüse' };
             }
             if (roomProduce.some(w => text.includes(w))) {
-                if (catEl) catEl.value = 'ObstGemuese';
-                if (locEl) locEl.value = 'Obstschale / Küche';
-                if (suggestMhd) setSuggestedMhd(5, 'Zimmertemperatur-Obst/-Gemüse');
-                return;
+                return { category: 'ObstGemuese', location: 'Obstschale / Küche', mhdDays: 5, mhdReason: 'Zimmertemperatur-Obst/-Gemüse' };
             }
         }
 
@@ -1373,9 +1605,11 @@
             'en:dairies', 'en:milks', 'en:cheeses', 'en:yogurts'
         ];
         if (dairyWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'Molkerei';
-            if (locEl) locEl.value = nameLower.includes('h-milch') ? 'Vorratsschrank' : 'Kühlschrank';
-            return;
+            return {
+                category: 'Molkerei',
+                location: nameLower.includes('h-milch') ? 'Vorratsschrank' : 'Kühlschrank',
+                mhdDays: null
+            };
         }
 
         const cannedWords = [
@@ -1385,9 +1619,7 @@
             'en:canned', 'en:preserved', 'en:jams', 'en:honeys'
         ];
         if (cannedWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'Konserven';
-            if (locEl) locEl.value = 'Vorratsschrank';
-            return;
+            return { category: 'Konserven', location: 'Vorratsschrank', mhdDays: null };
         }
 
         const dryWords = [
@@ -1396,9 +1628,7 @@
             'couscous', 'bulgur', 'quinoa', 'knäckebrot', 'zwieback', 'en:pastas', 'en:rices', 'en:flours', 'en:cereals'
         ];
         if (dryWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'Trockenwaren';
-            if (locEl) locEl.value = 'Vorratsschrank';
-            return;
+            return { category: 'Trockenwaren', location: 'Vorratsschrank', mhdDays: null };
         }
 
         const spiceSauceWords = [
@@ -1408,9 +1638,11 @@
             'en:spices', 'en:sauces', 'en:condiments', 'en:oils', 'en:vinegars'
         ];
         if (spiceSauceWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'Gewürze';
-            if (locEl) locEl.value = ['remoulade', 'mayonnaise', 'pesto'].some(w => nameLower.includes(w)) ? 'Kühlschrank' : 'Vorratsschrank';
-            return;
+            return {
+                category: 'Gewürze',
+                location: ['remoulade', 'mayonnaise', 'pesto'].some(w => nameLower.includes(w)) ? 'Kühlschrank' : 'Vorratsschrank',
+                mhdDays: null
+            };
         }
 
         const drinkWords = [
@@ -1420,16 +1652,26 @@
             'en:waters', 'en:juices', 'en:sodas', 'en:soft-drinks', 'en:alcoholic-beverages', 'en:teas', 'en:coffees'
         ];
         if (drinkWords.some(w => text.includes(w))) {
-            if (catEl) catEl.value = 'Getränke';
-            if (locEl) {
-                const isCellarDrink = ['kiste', 'kasten', 'bier', 'wein', 'sekt', 'mineralwasser', 'sprudel', 'saft'].some(w => nameLower.includes(w));
-                locEl.value = isCellarDrink ? 'Keller' : 'Vorratsschrank';
-            }
-            return;
+            const isCellarDrink = ['kiste', 'kasten', 'bier', 'wein', 'sekt', 'mineralwasser', 'sprudel', 'saft'].some(w => nameLower.includes(w));
+            return { category: 'Getränke', location: isCellarDrink ? 'Keller' : 'Vorratsschrank', mhdDays: null };
         }
 
-        if (catEl) catEl.value = 'Sonstiges';
-        if (locEl) locEl.value = ['eier', 'blätterteig', 'hummus'].some(w => nameLower.includes(w)) ? 'Kühlschrank' : 'Vorratsschrank';
+        return {
+            category: 'Sonstiges',
+            location: ['eier', 'blätterteig', 'hummus'].some(w => nameLower.includes(w)) ? 'Kühlschrank' : 'Vorratsschrank',
+            mhdDays: null
+        };
+    }
+
+    function suggestStorageAndCategory(productName, barcodeTags = '', targetCatId = 'category', targetLocId = 'location', suggestMhd = true) {
+        const res = detectCategoryAndLocation(productName, barcodeTags);
+        const catEl = document.getElementById(targetCatId);
+        const locEl = targetLocId ? document.getElementById(targetLocId) : null;
+        if (catEl) catEl.value = res.category;
+        if (locEl) locEl.value = res.location;
+        if (suggestMhd && res.mhdDays) {
+            setSuggestedMhd(res.mhdDays, res.mhdReason);
+        }
     }
 
     document.getElementById('name').addEventListener('input', (e) => {
@@ -1561,11 +1803,33 @@
         }
     });
 
+    // --- AUTOCOMPLETE DATALIST AUS VORRAT & STATISTIK AKTUALISIEREN ---
+    function refreshAutocompleteDatalist() {
+        const names = new Set();
+        inventory.forEach(i => { if (i.name) names.add(i.name.trim()); });
+        Object.values(yearlyStats).forEach(yData => {
+            if (yData && yData.items) {
+                Object.values(yData.items).forEach(entry => {
+                    if (entry.name) names.add(entry.name.trim());
+                });
+            }
+        });
+        const datalist = document.getElementById('pantrySuggestions');
+        datalist.innerHTML = '';
+        Array.from(names).sort((a, b) => a.localeCompare(b)).forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n;
+            datalist.appendChild(opt);
+        });
+    }
+
     // --- FIREBASE ECHTZEIT-LISTENERS ---
     onSnapshot(vorratRef, (snapshot) => {
         inventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         document.getElementById('vorratCount').textContent = inventory.length;
         syncStatus.textContent = "🟢 Live";
+        updateAlertBadge();
+        refreshAutocompleteDatalist();
         renderList();
         if (!viewRezepte.classList.contains('hidden')) renderRecipes();
     }, () => {
@@ -1589,7 +1853,25 @@
         snapshot.docs.forEach(d => {
             yearlyStats[d.id] = d.data();
         });
+        refreshAutocompleteDatalist();
+        if (!viewEinkauf.classList.contains('hidden')) renderStaplesRow();
     });
+
+    function updateAlertBadge() {
+        let alertCount = 0;
+        inventory.forEach(item => {
+            const mhd = getMhdInfo(item.mhd);
+            const isLow = item.minAmount && item.amount <= item.minAmount;
+            if (mhd.diffDays <= 14 || isLow) alertCount++;
+        });
+        const badge = document.getElementById('vorratAlertBadge');
+        if (alertCount > 0) {
+            badge.textContent = `⚠️ ${alertCount}`;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
 
     async function logConsumption(item, consumedAmount) {
         const year = String(new Date().getFullYear());
@@ -1680,6 +1962,7 @@
             await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", editId), itemData);
         } else {
             itemData.isOpened = false;
+            itemData.openedAt = null;
             await addDoc(vorratRef, itemData);
         }
     });
@@ -1687,9 +1970,18 @@
     window.toggleOpened = async function(id) {
         const item = inventory.find(i => i.id === id);
         if (!item) return;
+        const nextOpened = !item.isOpened;
         await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", id), {
-            isOpened: !item.isOpened
+            isOpened: nextOpened,
+            openedAt: nextOpened ? new Date().toISOString().slice(0, 10) : null
         });
+    };
+
+    window.findRecipesWithIngredient = function(itemName) {
+        switchTab('REZEPTE');
+        setRecipeFilter('ALL');
+        recipeSearchInput.value = itemName;
+        renderRecipes();
     };
 
     window.editItem = function(id) {
@@ -1746,7 +2038,8 @@
                     note: `Nachkauf`,
                     category: item.category,
                     location: item.location || 'Vorratsschrank',
-                    unit: item.unit
+                    unit: item.unit,
+                    inCart: false
                 });
                 await deleteDoc(itemDoc);
             } else if (confirm(`Nur aus dem Vorrat löschen (ohne Einkaufsliste)?`)) {
@@ -1762,20 +2055,38 @@
                         note: `Nachkauf (Rest: ${newAmount} ${item.unit})`,
                         category: item.category,
                         location: item.location || 'Vorratsschrank',
-                        unit: item.unit
+                        unit: item.unit,
+                        inCart: false
                     });
                 }
             }
         }
     };
 
-    window.quickAddToShopping = async function(itemName, category = 'Sonstiges', note = '') {
+    window.quickAddToShopping = async function(itemName, category = null, note = '') {
+        const detectedCat = category || detectCategoryAndLocation(itemName).category;
+        const existing = shoppingItems.find(s => s.name.trim().toLowerCase() === itemName.trim().toLowerCase() && !s.inCart);
+
+        if (existing) {
+            if (note) {
+                const combinedNote = existing.note ? `${existing.note} + ${note}` : note;
+                await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste", existing.id), {
+                    note: combinedNote
+                });
+                alert(`🛒 "${itemName}" stand schon auf der Liste – Notiz wurde ergänzt!`);
+            } else {
+                alert(`🛒 "${itemName}" steht bereits auf eurer Einkaufsliste!`);
+            }
+            return;
+        }
+
         await addDoc(einkaufRef, {
-            name: itemName,
+            name: itemName.trim(),
             note: note,
-            category: category,
+            category: detectedCat,
             location: 'Vorratsschrank',
-            unit: 'Stk.'
+            unit: 'Stk.',
+            inCart: false
         });
         alert(`🛒 "${itemName}" wurde auf die Einkaufsliste gesetzt!`);
     };
@@ -1791,6 +2102,17 @@
         if (diffDays < 0) return { text: `⚠️ Abgelaufen (${formattedDate})`, cssClass: 'expired', diffDays };
         if (diffDays <= 14) return { text: `⏳ Bald (${formattedDate})`, cssClass: 'expiring-soon', diffDays };
         return { text: `MHD: ${formattedDate}`, cssClass: '', diffDays };
+    }
+
+    function getOpenedDaysText(openedAtIso) {
+        if (!openedAtIso) return '🔓 Angebrochen';
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const openDate = new Date(openedAtIso);
+        const diff = Math.max(0, Math.floor((today - openDate) / (1000 * 60 * 60 * 24)));
+        if (diff === 0) return '🔓 Heute geöffnet';
+        if (diff === 1) return '🔓 Seit 1 Tag offen';
+        return `🔓 Seit ${diff} Tagen offen`;
     }
 
     function renderList() {
@@ -1856,6 +2178,7 @@
             const catText = categoryLabels[item.category] || item.category;
             const isLow = item.minAmount && item.amount <= item.minAmount;
             const statusClass = item.isOpened ? 'opened-item' : (mhdInfo.cssClass || (isLow ? 'low-stock' : ''));
+            const safeItemName = item.name.replace(/'/g, "\\'");
 
             const card = document.createElement('div');
             card.className = `item-card ${statusClass}`;
@@ -1863,7 +2186,7 @@
                 <div class="item-info">
                     <h3>${item.name}</h3>
                     <div class="item-meta">
-                        ${item.isOpened ? `<span class="badge badge-opened">🔓 Angebrochen</span>` : ''}
+                        ${item.isOpened ? `<span class="badge badge-opened">${getOpenedDaysText(item.openedAt)}</span>` : ''}
                         <span class="badge">${catText}</span>
                         <span class="badge badge-loc">📍 ${locText}</span>
                         ${isLow ? `<span class="badge badge-low">📉 Knapp (Min: ${item.minAmount})</span>` : ''}
@@ -1871,6 +2194,7 @@
                     </div>
                 </div>
                 <div class="controls">
+                    <button class="icon-btn" onclick="findRecipesWithIngredient('${safeItemName}')" title="Passende Rezepte mit dieser Zutat suchen">🍳</button>
                     <button class="icon-btn ${item.isOpened ? 'opened-active' : ''}" onclick="toggleOpened('${item.id}')" title="${item.isOpened ? 'Als geschlossen markieren' : 'Als angebrochen markieren'}">🔓</button>
                     <button class="icon-btn" onclick="editItem('${item.id}')" title="Bearbeiten">✏️</button>
                     <button class="qty-btn" onclick="changeAmount('${item.id}', -1)">-</button>
@@ -1895,7 +2219,6 @@
     function classifyIngredientGroup(nameStr) {
         const s = (nameStr || '').toLowerCase().trim();
 
-        // 1. Milch & Pflanzendrinks strikt nach Sorte trennen
         if (s.includes('kokosmilch') || s.includes('kokosdrink')) return 'milk_coconut';
         if (s.includes('hafermilch') || s.includes('haferdrink')) return 'milk_oat';
         if (s.includes('sojamilch') || s.includes('sojadrink')) return 'milk_soy';
@@ -1908,7 +2231,6 @@
         if (s.includes('buttermilch')) return 'milk_butter';
         if (/\b(kuhmilch|vollmilch|frischmilch|h-milch|weidemilch|fettarme milch|milch)\b/.test(s)) return 'milk_cow';
 
-        // 2. Weitere häufig verwechselte Zutatenpaare trennen
         if (s.includes('kokosöl') || s.includes('kokosfett')) return 'oil_coconut';
         if (s.includes('olivenöl')) return 'oil_olive';
         if (s.includes('rapsöl')) return 'oil_rapeseed';
@@ -1920,7 +2242,7 @@
         if (s.includes('weißweinessig') || s.includes('rotweinessig')) return 'vinegar_wine';
 
         if (s.includes('saure sahne') || s.includes('sauerrahm')) return 'cream_sour';
-        if (s.includes('schlagsahne') || s.includes('kochsalz') === false && /\bsahne\b/.test(s)) return 'cream_sweet';
+        if (!s.includes('kochsalz') && /\bsahne\b/.test(s)) return 'cream_sweet';
 
         if (s.includes('puderzucker')) return 'sugar_powder';
         if (s.includes('vanillezucker') || s.includes('vanillinzucker')) return 'sugar_vanilla';
@@ -1949,34 +2271,54 @@
 
         const reqGroup = classifyIngredientGroup(reqName);
 
-        return inventory.filter(item => {
+        const matches = inventory.filter(item => {
             const itemName = (item.name || '').toLowerCase().trim();
             if (!itemName) return false;
 
             const itemGroup = classifyIngredientGroup(itemName);
 
-            // Wenn mindestens eines der beiden zu einer spezifischen Sortengruppe gehört (z.B. Kokosmilch vs. Kuhmilch),
-            // müssen beide exakt in derselben Gruppe sein!
             if (reqGroup !== null || itemGroup !== null) {
                 return reqGroup !== null && reqGroup === itemGroup;
             }
 
-            // Standard-Abgleich für alle übrigen Zutaten
             return itemName.includes(reqName) || reqName.includes(itemName);
+        });
+
+        // FEFO-Sortierung: Zuerst bereits angebrochene Packungen, dann kürzestes MHD
+        return matches.sort((a, b) => {
+            if (a.isOpened && !b.isOpened) return -1;
+            if (!a.isOpened && b.isOpened) return 1;
+            if (!a.mhd) return 1;
+            if (!b.mhd) return -1;
+            return new Date(a.mhd) - new Date(b.mhd);
         });
     }
 
-    // --- REZEPTE: SMART-PARSER & ZUTATEN-EINHEITEN (INKL. TL, EL, PRISE, BUND, ZEHE) ---
+    // --- REZEPTE: TAGS, SMART-PARSER (INKL. BRUCHZEICHEN) & ZUTATEN-EINHEITEN ---
     const toggleRecipeFormBtn = document.getElementById('toggleRecipeFormBtn');
     const recipeFormCard = document.getElementById('recipeFormCard');
     const ingredientRows = document.getElementById('ingredientRows');
     const ocrFeedback = document.getElementById('ocrFeedback');
 
+    document.querySelectorAll('#recipeTagSelector .tag-toggle').forEach(btn => {
+        btn.addEventListener('click', () => btn.classList.toggle('selected'));
+    });
+
+    function getSelectedFormTags() {
+        return Array.from(document.querySelectorAll('#recipeTagSelector .tag-toggle.selected')).map(b => b.dataset.tag);
+    }
+
+    function setSelectedFormTags(tags = []) {
+        document.querySelectorAll('#recipeTagSelector .tag-toggle').forEach(b => {
+            b.classList.toggle('selected', tags.includes(b.dataset.tag));
+        });
+    }
+
     function addIngredientInputRow(name = '', amount = '', unit = 'g') {
         const row = document.createElement('div');
         row.className = 'ing-builder-row';
         row.innerHTML = `
-            <input type="text" class="ing-name" placeholder="Zutat (z.B. Hafermilch, Salz)" value="${name.replace(/"/g, '&quot;')}" required>
+            <input type="text" list="pantrySuggestions" class="ing-name" placeholder="Zutat (z.B. Hafermilch, Salz)" value="${name.replace(/"/g, '&quot;')}" required>
             <input type="number" class="ing-amount" placeholder="Menge" value="${amount}" min="0" step="any">
             <select class="ing-unit">
                 <option value="Stk." ${unit==='Stk.'?'selected':''}>Stk.</option>
@@ -1996,6 +2338,19 @@
         ingredientRows.appendChild(row);
     }
 
+    function normalizeUnicodeFractions(str) {
+        return str
+            .replace(/½/g, '0.5')
+            .replace(/¼/g, '0.25')
+            .replace(/¾/g, '0.75')
+            .replace(/⅓/g, '0.33')
+            .replace(/⅔/g, '0.67')
+            .replace(/(\d+)\s*\/\s*(\d+)/g, (_, a, b) => {
+                const denom = parseFloat(b);
+                return denom ? String(Math.round((parseFloat(a) / denom) * 100) / 100) : a;
+            });
+    }
+
     function parseRecipeTextIntoForm(rawText) {
         const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
         if (lines.length === 0) return;
@@ -2008,24 +2363,32 @@
         const ingRegex = /^[-•*]?\s*(\d+(?:[.,]\d+)?)\s*(g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|tl|teelöffel|el|esslöffel|prise|prisen|bund|zehe|zehen|dose|dosen|glas|gläser|stk\.?|stück|packung|pck\.?)?\s+(.+)$/i;
 
         lines.forEach((line, idx) => {
-            const lower = line.toLowerCase();
+            const cleanLine = normalizeUnicodeFractions(line);
+            const lower = cleanLine.toLowerCase();
+
+            const servMatch = lower.match(/(?:für|ergibt)\s+(\d+)\s*(?:personen|portionen|stück)/i);
+            if (servMatch) {
+                document.getElementById('recServings').value = parseInt(servMatch[1], 10) || 4;
+                inStepsSection = false;
+                return;
+            }
 
             if (/^(zubereitung|schritte|anleitung|vorgehen)\b/i.test(lower)) {
                 inStepsSection = true;
                 return;
             }
-            if (/^(zutaten|für \d+ personen)\b/i.test(lower)) {
+            if (/^(zutaten)\b/i.test(lower)) {
                 inStepsSection = false;
                 return;
             }
 
-            if (idx === 0 && line.length <= 65 && !ingRegex.test(line)) {
-                title = line;
+            if (idx === 0 && cleanLine.length <= 65 && !ingRegex.test(cleanLine)) {
+                title = cleanLine;
                 return;
             }
 
             if (!inStepsSection) {
-                const match = line.match(ingRegex);
+                const match = cleanLine.match(ingRegex);
                 if (match && match[3].length <= 45) {
                     const num = parseFloat(match[1].replace(',', '.'));
                     const rawUnit = (match[2] || '').toLowerCase();
@@ -2114,6 +2477,8 @@
         toggleRecipeFormBtn.classList.add('hidden');
         ocrFeedback.style.display = 'none';
         document.getElementById('editRecipeId').value = '';
+        document.getElementById('recServings').value = 4;
+        setSelectedFormTags([]);
         document.getElementById('recipeFormTitle').textContent = 'Neues Rezept anlegen';
         document.getElementById('saveRecipeBtn').textContent = '💾 Rezept speichern';
         if (ingredientRows.children.length === 0) {
@@ -2127,6 +2492,7 @@
         toggleRecipeFormBtn.classList.remove('hidden');
         document.getElementById('recipeForm').reset();
         document.getElementById('editRecipeId').value = '';
+        setSelectedFormTags([]);
         ocrFeedback.style.display = 'none';
         ingredientRows.innerHTML = '';
     });
@@ -2137,6 +2503,8 @@
         e.preventDefault();
         const editId = document.getElementById('editRecipeId').value;
         const title = document.getElementById('recTitle').value.trim();
+        const servings = parseInt(document.getElementById('recServings').value, 10) || 4;
+        const tags = getSelectedFormTags();
         const notes = document.getElementById('recNotes').value.trim();
         const rows = ingredientRows.querySelectorAll('.ing-builder-row');
         const ingredients = [];
@@ -2162,9 +2530,9 @@
         document.getElementById('closeRecipeFormBtn').click();
 
         if (editId) {
-            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", editId), { title, notes, ingredients });
+            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", editId), { title, servings, tags, notes, ingredients });
         } else {
-            await addDoc(rezepteRef, { title, notes, ingredients, plannedThisWeek: false });
+            await addDoc(rezepteRef, { title, servings, tags, notes, ingredients, plannedThisWeek: false, lastCooked: null });
         }
     });
 
@@ -2178,6 +2546,8 @@
 
         document.getElementById('editRecipeId').value = rec.id;
         document.getElementById('recTitle').value = rec.title;
+        document.getElementById('recServings').value = rec.servings || 4;
+        setSelectedFormTags(rec.tags || []);
         document.getElementById('recNotes').value = rec.notes || '';
         document.getElementById('recipeFormTitle').textContent = '✏️ Rezept bearbeiten';
         document.getElementById('saveRecipeBtn').textContent = '💾 Änderungen speichern';
@@ -2201,24 +2571,58 @@
         });
     };
 
+    window.changeRecipeServings = function(id, delta) {
+        const rec = recipes.find(r => r.id === id);
+        if (!rec) return;
+        const baseServings = rec.servings || 4;
+        const current = recipeServingsOverride[id] || baseServings;
+        const next = Math.max(1, Math.min(20, current + delta));
+        recipeServingsOverride[id] = next;
+        renderRecipes();
+    };
+
+    function getScaledIngredients(rec) {
+        const baseServings = rec.servings || 4;
+        const targetServings = recipeServingsOverride[rec.id] || baseServings;
+        const factor = targetServings / baseServings;
+
+        return (rec.ingredients || []).map(ing => {
+            if (!ing.amount) return { ...ing };
+            const scaled = Math.round(ing.amount * factor * 100) / 100;
+            return { ...ing, amount: scaled };
+        });
+    }
+
     window.addAllWeekMissingToShopping = async function() {
         const planned = recipes.filter(r => r.plannedThisWeek);
         if (planned.length === 0) return;
 
         let addedCount = 0;
         for (const rec of planned) {
-            for (const ing of (rec.ingredients || [])) {
+            const scaledIngs = getScaledIngredients(rec);
+            for (const ing of scaledIngs) {
                 const check = checkIngredientStock(ing);
                 if (check.status !== 'ok') {
-                    const alreadyOnList = shoppingItems.some(s => s.name.toLowerCase() === ing.name.toLowerCase());
-                    if (!alreadyOnList) {
-                        const note = ing.amount ? `Für ${rec.title} (${ing.amount} ${ing.unit})` : `Für ${rec.title}`;
+                    const note = ing.amount ? `Für ${rec.title} (${ing.amount} ${ing.unit})` : `Für ${rec.title}`;
+                    const detectedCat = detectCategoryAndLocation(ing.name).category;
+                    const existing = shoppingItems.find(s => s.name.trim().toLowerCase() === ing.name.trim().toLowerCase() && !s.inCart);
+
+                    if (existing) {
+                        if (!existing.note || !existing.note.includes(rec.title)) {
+                            const updatedNote = existing.note ? `${existing.note} + ${note}` : note;
+                            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste", existing.id), {
+                                note: updatedNote
+                            });
+                            addedCount++;
+                        }
+                    } else {
                         await addDoc(einkaufRef, {
-                            name: ing.name,
+                            name: ing.name.trim(),
                             note: note,
-                            category: 'Sonstiges',
+                            category: detectedCat,
                             location: 'Vorratsschrank',
-                            unit: 'Stk.'
+                            unit: 'Stk.',
+                            inCart: false
                         });
                         addedCount++;
                     }
@@ -2260,40 +2664,73 @@
             if (isMetricLarge(pantryUnit)) return (recAmount * 1) / 1000;
             return 0;
         }
+        // Schutz für Zehe/Bund gegenüber Stück (z.B. 2 Zehen Knoblauch löschen nicht 2 ganze Knollen)
+        if (['Zehe', 'Bund'].includes(recUnit) && pantryUnit === 'Stk.') {
+            return 0;
+        }
         return recAmount;
     }
 
+    // --- MULTI-PACK & FEFO-ABZUG INKL. AUTO-ANBRUCH ---
     window.cookRecipe = async function(id) {
         const rec = recipes.find(r => r.id === id);
         if (!rec) return;
 
-        if (!confirm(`🍳 "${rec.title}" gekocht?\n\nAlle benötigten Zutaten werden jetzt automatisch vom Vorrat abgezogen und in die Jahresstatistik eingetragen.`)) {
+        const activeServings = recipeServingsOverride[rec.id] || rec.servings || 4;
+        if (!confirm(`🍳 "${rec.title}" (${activeServings} Portionen) gekocht?\n\nAlle benötigten Zutaten werden jetzt nach kürzestem MHD vom Vorrat abgezogen und halb verbrauchte Packungen als angebrochen markiert.`)) {
             return;
         }
 
         const emptyItems = [];
+        const scaledIngs = getScaledIngredients(rec);
+        const todayIso = new Date().toISOString().slice(0, 10);
 
-        for (const ing of (rec.ingredients || [])) {
+        for (const ing of scaledIngs) {
             const matches = findMatchingPantryItems(ing.name);
-            const match = matches[0];
-            if (!match) continue;
+            if (matches.length === 0) continue;
 
-            const deductQty = convertRecipeAmountToPantryUnit(ing.amount, ing.unit, match.unit);
-            if (deductQty <= 0) continue;
+            // Wir rechnen die benötigte Menge zunächst in die Einheit des ersten Treffers um
+            let remainingNeededInFirstUnit = convertRecipeAmountToPantryUnit(ing.amount, ing.unit, matches[0].unit);
+            if (remainingNeededInFirstUnit <= 0) continue;
 
-            const actualConsumed = Math.min(match.amount, deductQty);
-            logConsumption(match, actualConsumed);
+            for (const match of matches) {
+                if (remainingNeededInFirstUnit <= 0) break;
 
-            const remaining = Math.round((match.amount - deductQty) * 100) / 100;
-            const itemDoc = doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", match.id);
+                const neededInMatchUnit = convertRecipeAmountToPantryUnit(ing.amount, ing.unit, match.unit);
+                if (neededInMatchUnit <= 0) continue;
 
-            if (remaining <= 0) {
-                emptyItems.push(match);
-                await deleteDoc(itemDoc);
-            } else {
-                await updateDoc(itemDoc, { amount: remaining });
+                // Verhältnis der bereits abgedeckten Menge berechnen
+                const ratio = remainingNeededInFirstUnit / convertRecipeAmountToPantryUnit(ing.amount, ing.unit, matches[0].unit);
+                const actualNeededHere = Math.round(neededInMatchUnit * ratio * 100) / 100;
+
+                const deductedHere = Math.min(match.amount, actualNeededHere);
+                logConsumption(match, deductedHere);
+
+                const leftInPack = Math.round((match.amount - deductedHere) * 100) / 100;
+                const itemDoc = doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", match.id);
+
+                if (leftInPack <= 0) {
+                    emptyItems.push(match);
+                    await deleteDoc(itemDoc);
+                } else {
+                    const updatePayload = { amount: leftInPack };
+                    if (!match.isOpened) {
+                        updatePayload.isOpened = true;
+                        updatePayload.openedAt = todayIso;
+                    }
+                    await updateDoc(itemDoc, updatePayload);
+                }
+
+                // Restbedarf für eventuelle weitere Packungen herunterrechnen
+                const coveredFraction = deductedHere / neededInMatchUnit;
+                remainingNeededInFirstUnit = Math.max(0, Math.round((remainingNeededInFirstUnit - (convertRecipeAmountToPantryUnit(ing.amount, ing.unit, matches[0].unit) * coveredFraction)) * 100) / 100);
             }
         }
+
+        // Datum "Zuletzt gekocht" am Rezept speichern
+        await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", rec.id), {
+            lastCooked: todayIso
+        });
 
         if (emptyItems.length > 0) {
             const names = emptyItems.map(i => i.name).join(', ');
@@ -2304,7 +2741,8 @@
                         note: 'Nachkauf',
                         category: item.category || 'Sonstiges',
                         location: item.location || 'Vorratsschrank',
-                        unit: item.unit || 'Stk.'
+                        unit: item.unit || 'Stk.',
+                        inCart: false
                     });
                 }
             }
@@ -2332,9 +2770,9 @@
 
         const locSummary = matches.map(m => `${m.amount} ${m.unit} ${m.name} (${m.location || 'Vorratsschrank'})`).join(', ');
 
-        if (!ing.amount || ['TL', 'EL', 'Prise'].includes(ing.unit)) {
+        if (!ing.amount || ['TL', 'EL', 'Prise', 'Zehe', 'Bund'].includes(ing.unit)) {
             const hasMassVolMatch = matches.some(m => normalizeQty(m.amount, m.unit).baseUnit === 'mass_vol');
-            if (!hasMassVolMatch) {
+            if (!hasMassVolMatch || ['Zehe', 'Bund'].includes(ing.unit)) {
                 return { status: 'ok', icon: '✅', label: `Da: ${locSummary}` };
             }
         }
@@ -2388,14 +2826,19 @@
         }
 
         let filteredRecipes = recipes.filter(rec => {
-            const ings = rec.ingredients || [];
+            const scaledIngs = getScaledIngredients(rec);
             const titleMatch = (rec.title || '').toLowerCase().includes(recSearchTerm);
             const notesMatch = (rec.notes || '').toLowerCase().includes(recSearchTerm);
-            const ingMatch = ings.some(i => (i.name || '').toLowerCase().includes(recSearchTerm));
+            const ingMatch = scaledIngs.some(i => (i.name || '').toLowerCase().includes(recSearchTerm));
 
             if (recSearchTerm && !titleMatch && !notesMatch && !ingMatch) return false;
 
-            const allReady = ings.length > 0 && ings.every(i => checkIngredientStock(i).status === 'ok');
+            if (activeRecipeTagFilter) {
+                const recTags = rec.tags || [];
+                if (!recTags.includes(activeRecipeTagFilter)) return false;
+            }
+
+            const allReady = scaledIngs.length > 0 && scaledIngs.every(i => checkIngredientStock(i).status === 'ok');
 
             if (activeRecipeFilter === 'READY' && !allReady) return false;
             if (activeRecipeFilter === 'WEEK' && !rec.plannedThisWeek) return false;
@@ -2417,22 +2860,28 @@
         filteredRecipes.sort((a, b) => {
             if (a.plannedThisWeek && !b.plannedThisWeek) return -1;
             if (!a.plannedThisWeek && b.plannedThisWeek) return 1;
-            const aReady = (a.ingredients || []).every(i => checkIngredientStock(i).status === 'ok');
-            const bReady = (b.ingredients || []).every(i => checkIngredientStock(i).status === 'ok');
+            const aReady = getScaledIngredients(a).every(i => checkIngredientStock(i).status === 'ok');
+            const bReady = getScaledIngredients(b).every(i => checkIngredientStock(i).status === 'ok');
             if (aReady && !bReady) return -1;
             if (!aReady && bReady) return 1;
             return (a.title || '').localeCompare(b.title || '');
         });
 
         filteredRecipes.forEach(rec => {
-            const ings = rec.ingredients || [];
-            const allReady = ings.length > 0 && ings.every(i => checkIngredientStock(i).status === 'ok');
+            const scaledIngs = getScaledIngredients(rec);
+            const activeServings = recipeServingsOverride[rec.id] || rec.servings || 4;
+            const allReady = scaledIngs.length > 0 && scaledIngs.every(i => checkIngredientStock(i).status === 'ok');
+
+            const tagsHtml = (rec.tags || []).map(t => `<span class="badge badge-tag">${recipeTagLabels[t] || t}</span>`).join(' ');
+            const lastCookedText = rec.lastCooked
+                ? `<span class="badge" style="background:#e0e7ff; color:#3730a3;">🗓️ Zuletzt: ${new Date(rec.lastCooked).toLocaleDateString('de-DE')}</span>`
+                : '';
 
             const card = document.createElement('div');
             card.className = `recipe-card ${rec.plannedThisWeek ? 'planned-week' : ''} ${allReady ? 'all-ready' : ''}`;
 
             let ingHtml = '<ul class="ing-list">';
-            ings.forEach(ing => {
+            scaledIngs.forEach(ing => {
                 const check = checkIngredientStock(ing);
                 const reqText = ing.amount ? `${ing.amount} ${ing.unit} ` : '';
                 const safeIngName = ing.name.replace(/'/g, "\\'");
@@ -2444,24 +2893,40 @@
                             <strong>${check.icon} ${reqText}${ing.name}</strong>
                             <div style="font-size:0.78rem; color:#4b5563;">${check.label}</div>
                         </div>
-                        ${check.status !== 'ok' ? `<button type="button" class="mini-shop-btn" onclick="quickAddToShopping('${safeIngName}', 'Sonstiges', '${missingNote.replace(/'/g, "\\'")}')">+ Einkauf</button>` : ''}
+                        ${check.status !== 'ok' ? `<button type="button" class="mini-shop-btn" onclick="quickAddToShopping('${safeIngName}', null, '${missingNote.replace(/'/g, "\\'")}')">+ Einkauf</button>` : ''}
                     </li>
                 `;
             });
             ingHtml += '</ul>';
 
+            let stepsHtml = '';
+            if (rec.notes) {
+                const stepLines = rec.notes.split(/\r?\n/).filter(Boolean);
+                stepsHtml = `<div class="steps-box">${stepLines.map(line => `<div class="step-line" onclick="this.classList.toggle('done')">📝 ${line}</div>`).join('')}</div>`;
+            }
+
             card.innerHTML = `
                 <div class="recipe-header">
                     <div>
                         <h3>🍽️ ${rec.title}</h3>
-                        ${allReady ? `<span class="badge badge-ready" style="margin-top:4px;">✅ Alle Zutaten da</span>` : ''}
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                            ${allReady ? `<span class="badge badge-ready">✅ Alle Zutaten da</span>` : ''}
+                            ${lastCookedText}
+                            ${tagsHtml}
+                        </div>
                     </div>
                     <button type="button" class="icon-btn ${rec.plannedThisWeek ? 'opened-active' : ''}" onclick="toggleWeekPlan('${rec.id}')" title="Für diese Woche planen">📌</button>
                     <button type="button" class="icon-btn" onclick="editRecipe('${rec.id}')" title="Rezept bearbeiten">✏️</button>
                     <button type="button" class="icon-btn" onclick="deleteRecipe('${rec.id}')" title="Rezept löschen">🗑️</button>
                 </div>
+                <div class="servings-bar">
+                    <span>👥 Portionen:</span>
+                    <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', -1)">-</button>
+                    <span>${activeServings}</span>
+                    <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', 1)">+</button>
+                </div>
                 ${ingHtml}
-                ${rec.notes ? `<div style="margin-top:10px; font-size:0.83rem; color:#4b5563; background:#f9fafb; padding:8px; border-radius:8px; white-space:pre-line;">📝 ${rec.notes}</div>` : ''}
+                ${stepsHtml}
                 <button type="button" class="cook-done-btn" onclick="cookRecipe('${rec.id}')">🍳 Rezept gekocht – Zutaten vom Vorrat abziehen</button>
             `;
             recipesContainer.appendChild(card);
@@ -2589,7 +3054,32 @@
         URL.revokeObjectURL(url);
     });
 
-    // --- EINKAUFSLISTE & WHATSAPP-EXPORT ---
+    // --- EINKAUFSLISTE: DAUERBRENNER, IM-WAGEN-MODUS & WHATSAPP-EXPORT ---
+    function renderStaplesRow() {
+        const staplesRow = document.getElementById('staplesRow');
+        const currentYear = String(new Date().getFullYear());
+        const yearData = yearlyStats[currentYear] || Object.values(yearlyStats)[0];
+        if (!yearData || !yearData.items) {
+            staplesRow.classList.add('hidden');
+            return;
+        }
+
+        const topStaples = Object.values(yearData.items)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 6);
+
+        if (topStaples.length === 0) {
+            staplesRow.classList.add('hidden');
+            return;
+        }
+
+        staplesRow.classList.remove('hidden');
+        staplesRow.innerHTML = topStaples.map(s => {
+            const safe = s.name.replace(/'/g, "\\'");
+            return `<button type="button" class="chip-btn staple" onclick="quickAddToShopping('${safe}')">+ ${s.name}</button>`;
+        }).join('');
+    }
+
     document.getElementById('shareShoppingBtn').addEventListener('click', async () => {
         if (shoppingItems.length === 0) {
             alert('Die Einkaufsliste ist aktuell leer!');
@@ -2598,7 +3088,7 @@
 
         let lines = ['🛒 *Unsere Einkaufsliste*\n'];
         supermarketOrder.forEach(catKey => {
-            const group = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey);
+            const group = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey && !i.inCart);
             if (group.length > 0) {
                 lines.push(`*${categoryLabels[catKey] || catKey}*`);
                 group.forEach(item => {
@@ -2630,8 +3120,16 @@
         const category = document.getElementById('shopCategory').value;
         const note = document.getElementById('shopNote').value.trim();
         e.target.reset();
-        await addDoc(einkaufRef, { name, note, category, location: 'Vorratsschrank', unit: 'Stk.' });
+        await addDoc(einkaufRef, { name, note, category, location: 'Vorratsschrank', unit: 'Stk.', inCart: false });
     });
+
+    window.toggleInCart = async function(id) {
+        const item = shoppingItems.find(i => i.id === id);
+        if (!item) return;
+        await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste", id), {
+            inCart: !item.inCart
+        });
+    };
 
     window.finishShoppingItem = async function(id, moveToPantry) {
         const item = shoppingItems.find(i => i.id === id);
@@ -2640,6 +3138,9 @@
         await deleteDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste", id));
 
         if (moveToPantry) {
+            // Prüfen, ob ein gleichnamiger Artikel im Vorrat liegt, um Einheit/Lagerort/Mindestbestand zu übernehmen
+            const knownItem = inventory.find(i => i.name.trim().toLowerCase() === item.name.trim().toLowerCase());
+
             switchTab('VORRAT');
             userTouchedMhd = false;
             mhdHint.style.display = 'none';
@@ -2649,24 +3150,55 @@
             formCard.classList.remove('hidden');
             toggleFormBtn.classList.add('hidden');
             document.getElementById('name').value = item.name;
-            document.getElementById('category').value = item.category || 'Sonstiges';
-            document.getElementById('location').value = item.location || 'Vorratsschrank';
-            document.getElementById('unit').value = item.unit || 'Stk.';
-            suggestStorageAndCategory(item.name, '', 'category', 'location', true);
+
+            if (knownItem) {
+                document.getElementById('category').value = knownItem.category || item.category || 'Sonstiges';
+                document.getElementById('location').value = knownItem.location || 'Vorratsschrank';
+                document.getElementById('unit').value = knownItem.unit || 'Stk.';
+                if (knownItem.minAmount) document.getElementById('minAmount').value = knownItem.minAmount;
+            } else {
+                document.getElementById('category').value = item.category || 'Sonstiges';
+                document.getElementById('location').value = item.location || 'Vorratsschrank';
+                document.getElementById('unit').value = item.unit || 'Stk.';
+                suggestStorageAndCategory(item.name, '', 'category', 'location', true);
+            }
+
             showFeedback(`🛍️ "${item.name}" eingekauft! Jetzt nur noch Menge/MHD prüfen und speichern.`);
             formCard.scrollIntoView({ behavior: 'smooth' });
         }
     };
 
+    window.moveNextCartItemToPantry = function() {
+        const firstInCart = shoppingItems.find(i => i.inCart);
+        if (firstInCart) {
+            finishShoppingItem(firstInCart.id, true);
+        }
+    };
+
     function renderShoppingList() {
+        renderStaplesRow();
+        const inCartItems = shoppingItems.filter(i => i.inCart);
+        const inCartBanner = document.getElementById('inCartBanner');
+
+        if (inCartItems.length > 0) {
+            inCartBanner.classList.remove('hidden');
+            inCartBanner.innerHTML = `
+                <span style="font-size:0.88rem; color:#14532d;"><strong>🛍️ ${inCartItems.length} Artikel im Wagen</strong></span>
+                <button type="button" class="buy-btn" onclick="moveNextCartItemToPantry()">Nächsten in Vorrat ➔</button>
+            `;
+        } else {
+            inCartBanner.classList.add('hidden');
+        }
+
         shoppingContainer.innerHTML = '';
         if (shoppingItems.length === 0) {
             shoppingContainer.innerHTML = '<div class="empty-state">Die Einkaufsliste ist leer! 🎉</div>';
             return;
         }
 
+        // 1. Offene Artikel nach Supermarkt-Abteilungen sortiert
         supermarketOrder.forEach(catKey => {
-            const groupItems = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey);
+            const groupItems = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey && !i.inCart);
             if (groupItems.length === 0) return;
 
             const deptHeader = document.createElement('div');
@@ -2683,13 +3215,40 @@
                         ${item.note ? `<div class="item-meta">${item.note}</div>` : ''}
                     </div>
                     <div class="controls">
-                        <button class="buy-btn" onclick="finishShoppingItem('${item.id}', true)" title="Gekauft & in den Vorrat übernehmen">✓ In Vorrat</button>
-                        <button class="icon-btn" onclick="finishShoppingItem('${item.id}', false)" title="Nur abhaken / löschen">🗑️</button>
+                        <button class="cart-toggle-btn" onclick="toggleInCart('${item.id}')" title="Im Supermarkt in den Einkaufswagen legen">🛒 Wagen</button>
+                        <button class="buy-btn" onclick="finishShoppingItem('${item.id}', true)" title="Direkt in den Vorrat übernehmen">✓ Vorrat</button>
+                        <button class="icon-btn" onclick="finishShoppingItem('${item.id}', false)" title="Löschen">🗑️</button>
                     </div>
                 `;
                 shoppingContainer.appendChild(card);
             });
         });
+
+        // 2. Bereits im Einkaufswagen abgehakte Artikel gesammelt unten
+        if (inCartItems.length > 0) {
+            const cartHeader = document.createElement('div');
+            cartHeader.className = 'dept-header';
+            cartHeader.style.background = 'rgba(21, 128, 61, 0.88)';
+            cartHeader.textContent = `🛍️ Im Einkaufswagen (${inCartItems.length})`;
+            shoppingContainer.appendChild(cartHeader);
+
+            inCartItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card in-cart';
+                card.innerHTML = `
+                    <div class="item-info">
+                        <h3>${item.name}</h3>
+                        ${item.note ? `<div class="item-meta">${item.note}</div>` : ''}
+                    </div>
+                    <div class="controls">
+                        <button class="cart-toggle-btn checked" onclick="toggleInCart('${item.id}')" title="Zurück auf die offene Liste">↩️</button>
+                        <button class="buy-btn" onclick="finishShoppingItem('${item.id}', true)" title="In den Vorrat einräumen">✓ In Vorrat</button>
+                        <button class="icon-btn" onclick="finishShoppingItem('${item.id}', false)" title="Nur abhaken / löschen">🗑️</button>
+                    </div>
+                `;
+                shoppingContainer.appendChild(card);
+            });
+        }
     }
 
     if ('serviceWorker' in navigator) {
