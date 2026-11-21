@@ -192,7 +192,6 @@
             grid-column: span 2;
         }
 
-        /* Kombiniertes Text- + Kalender-Feld für das MHD */
         .mhd-combo {
             position: relative;
             display: flex;
@@ -273,6 +272,33 @@
             color: #4b5563;
             font-weight: 600;
             padding-left: 2px;
+        }
+
+        .nutrition-details {
+            grid-column: span 2;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .nutrition-details summary {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .nutrition-grid input {
+            padding: 7px 6px;
+            font-size: 0.82rem;
         }
 
         .btn-row {
@@ -458,6 +484,7 @@
         .badge-opened { background: #ede9fe; color: var(--opened); }
         .badge-ready { background: #dcfce7; color: var(--success); }
         .badge-tag { background: #f3f4f6; color: #374151; }
+        .badge-kcal { background: #fef3c7; color: #92400e; }
 
         .controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
         .qty-btn, .icon-btn {
@@ -552,6 +579,60 @@
             gap: 6px;
         }
 
+        .planner-box {
+            background: rgba(239, 246, 255, 0.97);
+            border: 2px solid #3b82f6;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .planner-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.02rem;
+            color: #1e3a8a;
+        }
+
+        .planner-focus-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0 12px 0;
+        }
+
+        .focus-chip {
+            width: auto;
+            padding: 6px 10px;
+            border-radius: 16px;
+            border: 1px solid #bfdbfe;
+            background: white;
+            color: #1e3a8a;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .focus-chip.active {
+            background: #1d4ed8;
+            color: white;
+            border-color: #1d4ed8;
+            box-shadow: 0 2px 4px rgba(29, 78, 216, 0.3);
+        }
+
+        .plan-day-row {
+            background: white;
+            border-radius: 10px;
+            padding: 9px 11px;
+            margin-bottom: 7px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
         .recipe-card {
             background: var(--card);
             border-radius: 14px;
@@ -581,6 +662,30 @@
             margin: 0;
             font-size: 1.08rem;
             flex: 1;
+        }
+
+        .macro-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 7px 10px;
+            margin-bottom: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .kid-hint-banner {
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            color: #854d0e;
+            font-size: 0.76rem;
+            padding: 5px 9px;
+            border-radius: 8px;
+            margin-bottom: 8px;
         }
 
         .servings-bar {
@@ -955,6 +1060,36 @@
                     <input type="number" id="minAmount" placeholder="Optional (z.B. 1)" min="0" step="any">
                 </div>
 
+                <details class="nutrition-details" id="nutritionDetails">
+                    <summary>📊 Nährwerte pro 100g / 100ml (auto beim Scannen)</summary>
+                    <div class="nutrition-grid">
+                        <div class="field-group">
+                            <span class="field-label">kcal</span>
+                            <input type="number" id="nutKcal" placeholder="0" min="0" step="any">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Eiweiß (g)</span>
+                            <input type="number" id="nutProtein" placeholder="0" min="0" step="any">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">KH (g)</span>
+                            <input type="number" id="nutCarbs" placeholder="0" min="0" step="any">
+                        </div>
+                        <div class="field-group">
+                            <span class="field-label">Fett (g)</span>
+                            <input type="number" id="nutFat" placeholder="0" min="0" step="any">
+                        </div>
+                        <div class="field-group" style="grid-column: span 2;">
+                            <span class="field-label">davon Zucker (g)</span>
+                            <input type="number" id="nutSugar" placeholder="0" min="0" step="any">
+                        </div>
+                        <div class="field-group" style="grid-column: span 2;">
+                            <span class="field-label">Salz (g)</span>
+                            <input type="number" id="nutSalt" placeholder="0" min="0" step="any">
+                        </div>
+                    </div>
+                </details>
+
                 <div id="mhdHint"></div>
 
                 <div class="btn-row">
@@ -1029,18 +1164,62 @@
             </form>
         </div>
 
-        <!-- SCHNELL-CHIPS FÜR DAUERBRENNER AUS DER STATISTIK -->
         <div id="staplesRow" class="chip-row hidden"></div>
-
-        <!-- BANNER WENN ARTIKEL IM EINKAUFSWAGEN LIEGEN -->
         <div id="inCartBanner" class="cart-banner hidden"></div>
-
         <div id="shoppingList"></div>
     </div>
 
-    <!-- ANSICHT 3: REZEPTE, WOCHENPLAN & VORRATS-AMPEL -->
+    <!-- ANSICHT 3: REZEPTE, WOCHENPLAN-GENERATOR & VORRATS-AMPEL -->
     <div id="viewRezepte" class="hidden">
         <div id="weekPlanContainer"></div>
+
+        <!-- AUSGEWOGENER WOCHENPLAN-GENERATOR (MIT KOMBINIERBAREN SCHWERPUNKTEN) -->
+        <button type="button" id="togglePlannerBtn" class="toggle-form-btn" style="background:#1d4ed8; margin-bottom:10px;">✨ Ausgewogenen Wochenplan vorschlagen</button>
+
+        <div class="planner-box hidden" id="plannerBox">
+            <div class="card-header">
+                <h3>✨ Wochenplan-Generator</h3>
+                <button type="button" id="closePlannerBtn" class="icon-btn">✕</button>
+            </div>
+
+            <div class="form-grid" style="margin-bottom:8px;">
+                <div class="field-group">
+                    <span class="field-label">Anzahl Tage</span>
+                    <select id="planDays">
+                        <option value="3">3 Tage</option>
+                        <option value="5">5 Tage (Mo–Fr)</option>
+                        <option value="7" selected>7 Tage (ganze Woche)</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <span class="field-label">Portionen pro Tag</span>
+                    <select id="planServings">
+                        <option value="2">2 Portionen</option>
+                        <option value="2.5" selected>2,5 (2 Erw. + Kleinkind)</option>
+                        <option value="3">3 Portionen</option>
+                        <option value="4">4 Portionen</option>
+                        <option value="5">5 Portionen</option>
+                        <option value="6">6 Portionen</option>
+                    </select>
+                </div>
+            </div>
+
+            <span class="field-label">Schwerpunkte beliebig kombinieren:</span>
+            <div class="planner-focus-grid" id="plannerFocusChips">
+                <button type="button" class="focus-chip active" data-focus="KID">👶 Kindgerecht</button>
+                <button type="button" class="focus-chip active" data-focus="PANTRY">♻️ Vorrat & MHD zuerst</button>
+                <button type="button" class="focus-chip" data-focus="QUICK_WEEK">⚡ Feierabend-Mix</button>
+                <button type="button" class="focus-chip" data-focus="LIGHT">🥗 Leicht & Kalorienbewusst</button>
+                <button type="button" class="focus-chip" data-focus="PROTEIN">💪 Proteinreich</button>
+                <button type="button" class="focus-chip" data-focus="VEGGIE">🥦 Vegetarisch</button>
+                <button type="button" class="focus-chip" data-focus="LOW_CARB">🌾 Low-Carb</button>
+                <button type="button" class="focus-chip" data-focus="MEAL_PREP">🍱 Meal-Prep / Einfrierbar</button>
+                <button type="button" class="focus-chip" data-focus="BUDGET">💰 Günstig & Bodenständig</button>
+            </div>
+
+            <button type="button" id="generatePlanBtn" class="add-btn" style="background:#1d4ed8; margin-bottom:10px;">🎲 Ausgewogenen Vorschlag erstellen</button>
+            <div id="generatedPlanResult"></div>
+        </div>
 
         <button type="button" id="toggleRecipeFormBtn" class="toggle-form-btn">➕ Eigenes Rezept speichern</button>
 
@@ -1062,20 +1241,20 @@
                 <div class="form-grid" style="margin-bottom:10px;">
                     <input type="text" id="recTitle" placeholder="Rezeptname (z.B. Spaghetti Bolognese)" required>
                     <div class="field-group">
-                        <input type="number" id="recServings" value="4" min="1" max="20" placeholder="Portionen" title="Anzahl Portionen">
+                        <input type="number" id="recServings" value="4" min="0.5" max="20" step="0.5" placeholder="Portionen" title="Anzahl Portionen">
                     </div>
                 </div>
 
                 <div class="field-label" style="margin-bottom:5px;">Kategorie / Tags (optional):</div>
                 <div id="recipeTagSelector" class="tag-selector">
+                    <button type="button" class="tag-toggle" data-tag="Kindgerecht">👶 Kindgerecht</button>
                     <button type="button" class="tag-toggle" data-tag="Schnell">⚡ Schnell</button>
                     <button type="button" class="tag-toggle" data-tag="Vegetarisch">🥦 Vegetarisch</button>
                     <button type="button" class="tag-toggle" data-tag="Grillen">🔥 Grillen / BBQ</button>
-                    <button type="button" class="tag-toggle" data-tag="Familie">👶 Familie / Kind</button>
                     <button type="button" class="tag-toggle" data-tag="Einfrierbar">🧊 Einfrierbar</button>
                 </div>
 
-                <div class="field-label" style="margin-bottom:6px;">Zutaten (für automatischen Vorrats-Check & Abzug):</div>
+                <div class="field-label" style="margin-bottom:6px;">Zutaten (für Vorrats-Check, Nährwerte & Abzug):</div>
                 <div id="ingredientRows"></div>
                 <button type="button" id="addIngRowBtn" class="chip-btn" style="margin: 6px 0 12px 0; background:#e5e7eb;">+ Weitere Zutat</button>
                 <textarea id="recNotes" rows="3" placeholder="Zubereitungsschritte (jede Zeile beim Kochen abhakbar)" style="margin-bottom:10px;"></textarea>
@@ -1083,13 +1262,11 @@
             </form>
         </div>
 
-        <!-- DISPLAY-WACHHALTE-MODUS FÜR DIE KÜCHE -->
         <div class="wake-lock-bar">
             <span>📱 Display beim Kochen anlassen</span>
             <button type="button" id="wakeLockBtn" class="wake-btn">Aus</button>
         </div>
 
-        <!-- REZEPT-SUCHE & FILTER-CHIPS -->
         <div class="search-box-wrapper">
             <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Kokosmilch, Brokkoli...)">
             <button type="button" id="clearRecipeSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
@@ -1100,10 +1277,10 @@
             <button type="button" id="recChipReady" class="chip-btn">✅ Sofort kochbar</button>
             <button type="button" id="recChipWeek" class="chip-btn">📌 Wochenplan</button>
             <button type="button" id="recChipMissing" class="chip-btn">⚠️ Etwas fehlt</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Kindgerecht">👶 Kindgerecht</button>
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Schnell">⚡ Schnell</button>
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Vegetarisch">🥦 Vegetarisch</button>
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Grillen">🔥 Grillen</button>
-            <button type="button" class="chip-btn rec-tag-filter" data-tag="Familie">👶 Familie</button>
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Einfrierbar">🧊 Einfrierbar</button>
         </div>
 
@@ -1157,17 +1334,130 @@
     const einkaufRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste");
     const rezepteRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte");
     const statsRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "statistik");
+    const naehrwerteRef = collection(db, "haushalte", SECRET_HOUSEHOLD_ID, "naehrwerte");
 
     let inventory = [];
     let shoppingItems = [];
     let recipes = [];
     let yearlyStats = {};
+    let learnedNutritionDict = {};
     let activeQuickFilter = 'ALL';
     let activeRecipeFilter = 'ALL';
     let activeRecipeTagFilter = '';
     let userTouchedMhd = false;
-    let recipeServingsOverride = {}; // speichert pro Rezept-ID die aktuell gewählte Portionszahl
+    let recipeServingsOverride = {};
+    let currentProposedPlan = [];
     let wakeLockSentinel = null;
+
+    // --- ERWEITERTE BASIS-NÄHRWERTTABELLE (~120 ALLTAGSZUTATEN PRO 100G / 100ML + TYPISCHES STÜCKGEWICHT) ---
+    const BASE_NUTRITION_DB = [
+        // Milch, Pflanzendrinks & Milchprodukte
+        { keys: ['kokosmilch', 'kokoscreme'], kcal: 195, p: 2.0, c: 3.0, f: 19.0, sugar: 2.5, salt: 0.05, pieceG: 400 },
+        { keys: ['hafermilch', 'haferdrink'], kcal: 46, p: 0.8, c: 7.0, f: 1.5, sugar: 4.0, salt: 0.1, pieceG: 1000 },
+        { keys: ['sojamilch', 'sojadrink'], kcal: 39, p: 3.3, c: 1.5, f: 1.8, sugar: 1.0, salt: 0.1, pieceG: 1000 },
+        { keys: ['mandelmilch', 'mandeldrink'], kcal: 24, p: 0.5, c: 3.0, f: 1.1, sugar: 2.5, salt: 0.1, pieceG: 1000 },
+        { keys: ['reismilch', 'reisdrink'], kcal: 52, p: 0.2, c: 10.0, f: 1.0, sugar: 6.5, salt: 0.1, pieceG: 1000 },
+        { keys: ['vollmilch', 'kuhmilch', 'frischmilch', 'h-milch', 'milch'], kcal: 64, p: 3.3, c: 4.8, f: 3.5, sugar: 4.8, salt: 0.12, pieceG: 1000 },
+        { keys: ['buttermilch'], kcal: 38, p: 3.5, c: 4.0, f: 0.6, sugar: 4.0, salt: 0.13, pieceG: 500 },
+        { keys: ['kondensmilch'], kcal: 135, p: 7.0, c: 10.0, f: 7.5, sugar: 10.0, salt: 0.25, pieceG: 340 },
+        { keys: ['schlagsahne', 'kochsahe', 'sahne'], kcal: 292, p: 2.4, c: 3.2, f: 30.0, sugar: 3.2, salt: 0.08, pieceG: 200 },
+        { keys: ['saure sahne', 'schmand', 'crème fraîche', 'creme fraiche'], kcal: 210, p: 2.8, c: 3.5, f: 20.0, sugar: 3.5, salt: 0.1, pieceG: 200 },
+        { keys: ['frischkäse'], kcal: 235, p: 6.0, c: 3.5, f: 22.0, sugar: 3.5, salt: 0.75, pieceG: 200 },
+        { keys: ['quark', 'magerquark', 'speisequark'], kcal: 68, p: 12.2, c: 4.1, f: 0.3, sugar: 4.1, salt: 0.1, pieceG: 250 },
+        { keys: ['joghurt', 'naturjoghurt', 'skyr', 'griechischer joghurt'], kcal: 62, p: 4.5, c: 4.8, f: 3.5, sugar: 4.8, salt: 0.12, pieceG: 150 },
+        { keys: ['mascarpone'], kcal: 394, p: 4.5, c: 3.0, f: 40.0, sugar: 3.0, salt: 0.1, pieceG: 250 },
+        { keys: ['ricotta'], kcal: 150, p: 9.0, c: 4.0, f: 11.0, sugar: 4.0, salt: 0.3, pieceG: 250 },
+        { keys: ['butter', 'kräuterbutter'], kcal: 741, p: 0.7, c: 0.6, f: 82.0, sugar: 0.6, salt: 0.03, pieceG: 250 },
+        { keys: ['margarine'], kcal: 630, p: 0.2, c: 0.5, f: 70.0, sugar: 0.5, salt: 0.3, pieceG: 250 },
+        { keys: ['mozzarella'], kcal: 250, p: 18.0, c: 1.5, f: 19.0, sugar: 1.0, salt: 0.7, pieceG: 125 },
+        { keys: ['parmesan', 'grana padano', 'hartkäse'], kcal: 392, p: 35.0, c: 0.5, f: 28.0, sugar: 0.5, salt: 1.6, pieceG: 150 },
+        { keys: ['gouda', 'emmentaler', 'cheddar', 'käse', 'reibekäse'], kcal: 356, p: 25.0, c: 0.1, f: 28.0, sugar: 0.1, salt: 1.8, pieceG: 200 },
+        { keys: ['feta', 'hirtenkäse', 'schafskäse'], kcal: 264, p: 14.0, c: 4.0, f: 21.0, sugar: 4.0, salt: 2.3, pieceG: 200 },
+        { keys: ['halloumi', 'grillkäse'], kcal: 315, p: 21.0, c: 2.0, f: 25.0, sugar: 2.0, salt: 2.5, pieceG: 200 },
+
+        // Eier, Fleisch, Fisch & Pflanzliche Proteine
+        { keys: ['ei', 'eier', 'eigelb', 'eiweiß'], kcal: 155, p: 12.6, c: 1.1, f: 10.6, sugar: 1.1, salt: 0.35, pieceG: 60 },
+        { keys: ['rinderhack', 'hackfleisch', 'gemischtes hack', 'schweinehack'], kcal: 220, p: 19.0, c: 0.0, f: 16.0, sugar: 0.0, salt: 0.2, pieceG: 500 },
+        { keys: ['hähnchen', 'hühnchen', 'putenbrust', 'pute', 'geflügel'], kcal: 115, p: 23.0, c: 0.0, f: 2.0, sugar: 0.0, salt: 0.15, pieceG: 300 },
+        { keys: ['schweinefilet', 'schnitzel', 'kotelett', 'schweinefleisch'], kcal: 145, p: 21.0, c: 0.0, f: 6.5, sugar: 0.0, salt: 0.15, pieceG: 250 },
+        { keys: ['rindfleisch', 'rindersteak', 'gulasch', 'roulade'], kcal: 165, p: 21.5, c: 0.0, f: 8.5, sugar: 0.0, salt: 0.15, pieceG: 250 },
+        { keys: ['bratwurst', 'würstchen', 'wiener', 'bockwurst'], kcal: 285, p: 13.0, c: 1.0, f: 25.0, sugar: 0.5, salt: 2.0, pieceG: 100 },
+        { keys: ['schinken', 'kochschinken', 'speck', 'bacon', 'salami'], kcal: 220, p: 19.0, c: 1.0, f: 15.0, sugar: 0.5, salt: 2.8, pieceG: 100 },
+        { keys: ['räucherlachs', 'lachsfilet', 'lachs'], kcal: 208, p: 20.0, c: 0.0, f: 13.0, sugar: 0.0, salt: 0.8, pieceG: 250 },
+        { keys: ['seelachs', 'kabeljau', 'forelle', 'fischfilet', 'fisch'], kcal: 95, p: 20.0, c: 0.0, f: 1.5, sugar: 0.0, salt: 0.2, pieceG: 250 },
+        { keys: ['thunfisch'], kcal: 116, p: 26.0, c: 0.0, f: 1.0, sugar: 0.0, salt: 1.0, pieceG: 150 },
+        { keys: ['garnelen', 'scampi', 'krabben'], kcal: 85, p: 18.5, c: 0.5, f: 1.0, sugar: 0.0, salt: 0.9, pieceG: 200 },
+        { keys: ['tofu', 'räuchertofu'], kcal: 135, p: 14.0, c: 1.5, f: 8.0, sugar: 0.5, salt: 0.1, pieceG: 200 },
+        { keys: ['hummus'], kcal: 240, p: 7.5, c: 15.0, f: 16.0, sugar: 1.0, salt: 1.1, pieceG: 200 },
+
+        // Nudeln, Reis, Kartoffeln & Getreide
+        { keys: ['nudel', 'pasta', 'spaghetti', 'penne', 'fusilli', 'tagliatelle', 'lasagne', 'makkaroni'], kcal: 355, p: 12.0, c: 71.0, f: 1.5, sugar: 3.0, salt: 0.02, pieceG: 500 },
+        { keys: ['tortellini', 'ravioli'], kcal: 280, p: 10.5, c: 43.0, f: 6.5, sugar: 2.5, salt: 1.1, pieceG: 250 },
+        { keys: ['gnocchi'], kcal: 165, p: 3.8, c: 35.0, f: 0.6, sugar: 1.0, salt: 1.1, pieceG: 500 },
+        { keys: ['schupfnudeln', 'spätzle'], kcal: 185, p: 5.5, c: 33.0, f: 3.0, sugar: 1.5, salt: 0.9, pieceG: 500 },
+        { keys: ['reis', 'basmati', 'risotto', 'jasminreis', 'wildreis'], kcal: 350, p: 7.5, c: 77.0, f: 0.8, sugar: 0.3, salt: 0.01, pieceG: 500 },
+        { keys: ['süßkartoffel'], kcal: 86, p: 1.6, c: 20.0, f: 0.1, sugar: 4.2, salt: 0.05, pieceG: 220 },
+        { keys: ['kartoffel', 'drillingskartoffel', 'festkochend', 'mehligkochend'], kcal: 76, p: 2.0, c: 16.0, f: 0.1, sugar: 0.8, salt: 0.01, pieceG: 100 },
+        { keys: ['weizenmehl', 'dinkelmehl', 'vollkornmehl', 'mehl'], kcal: 348, p: 10.5, c: 72.0, f: 1.0, sugar: 0.5, salt: 0.01, pieceG: 1000 },
+        { keys: ['speisestärke', 'maisstärke', 'kartoffelmehl'], kcal: 350, p: 0.3, c: 86.0, f: 0.1, sugar: 0.0, salt: 0.02, pieceG: 250 },
+        { keys: ['haferflocken', 'schmelzflocken', 'müsli'], kcal: 372, p: 13.5, c: 58.7, f: 7.0, sugar: 0.7, salt: 0.01, pieceG: 500 },
+        { keys: ['couscous', 'bulgur', 'quinoa', 'hirse', 'polenta', 'grieß'], kcal: 355, p: 12.0, c: 70.0, f: 1.5, sugar: 1.0, salt: 0.02, pieceG: 500 },
+        { keys: ['brot', 'toast', 'brötchen', 'baguette', 'ciabatta'], kcal: 250, p: 8.5, c: 48.0, f: 2.0, sugar: 3.0, salt: 1.2, pieceG: 50 },
+        { keys: ['paniermehl', 'semmelbrösel'], kcal: 360, p: 11.0, c: 73.0, f: 2.0, sugar: 4.0, salt: 1.3, pieceG: 250 },
+        { keys: ['blätterteig', 'pizzateig', 'flammkuchenteig'], kcal: 370, p: 6.0, c: 38.0, f: 21.0, sugar: 2.0, salt: 1.3, pieceG: 275 },
+        { keys: ['wrap', 'tortilla'], kcal: 300, p: 8.0, c: 50.0, f: 7.0, sugar: 3.0, salt: 1.4, pieceG: 60 },
+
+        // Hülsenfrüchte & Konserven
+        { keys: ['linsen', 'rote linsen', 'berg-linsen', 'tellerlinsen'], kcal: 330, p: 24.0, c: 52.0, f: 1.5, sugar: 2.0, salt: 0.03, pieceG: 500 },
+        { keys: ['kichererbsen', 'kidneybohnen', 'weiße bohnen', 'schwarze bohnen'], kcal: 120, p: 7.5, c: 16.0, f: 2.0, sugar: 1.0, salt: 0.6, pieceG: 240 },
+        { keys: ['mais', 'maiskörner', 'zuckermais'], kcal: 86, p: 3.2, c: 19.0, f: 1.2, sugar: 3.2, salt: 0.4, pieceG: 285 },
+        { keys: ['erbsen'], kcal: 81, p: 5.4, c: 14.5, f: 0.4, sugar: 5.7, salt: 0.1, pieceG: 250 },
+        { keys: ['passierte tomaten', 'gehackte tomaten', 'dosentomaten', 'geschälte tomaten'], kcal: 26, p: 1.3, c: 4.0, f: 0.2, sugar: 3.8, salt: 0.35, pieceG: 400 },
+        { keys: ['tomatenmark'], kcal: 82, p: 4.3, c: 14.0, f: 0.5, sugar: 12.0, salt: 1.2, pieceG: 200 },
+        { keys: ['apfelmus', 'apfelmark'], kcal: 55, p: 0.3, c: 13.0, f: 0.2, sugar: 11.5, salt: 0.01, pieceG: 350 },
+
+        // Gemüse & Obst
+        { keys: ['tomate', 'cherrytomate', 'rispentomate'], kcal: 18, p: 0.9, c: 3.5, f: 0.2, sugar: 2.6, salt: 0.01, pieceG: 110 },
+        { keys: ['zwiebel', 'schalotte', 'rote zwiebel'], kcal: 40, p: 1.1, c: 9.0, f: 0.1, sugar: 4.2, salt: 0.01, pieceG: 80 },
+        { keys: ['frühlingszwiebel', 'lauchzwiebel', 'lauch', 'porree'], kcal: 31, p: 1.5, c: 5.5, f: 0.3, sugar: 2.5, salt: 0.02, pieceG: 150 },
+        { keys: ['knoblauch'], kcal: 149, p: 6.4, c: 33.0, f: 0.5, sugar: 1.0, salt: 0.02, pieceG: 40 },
+        { keys: ['karotte', 'möhre', 'wurzel'], kcal: 41, p: 0.9, c: 9.6, f: 0.2, sugar: 4.7, salt: 0.07, pieceG: 80 },
+        { keys: ['paprika'], kcal: 31, p: 1.0, c: 6.0, f: 0.3, sugar: 4.2, salt: 0.01, pieceG: 160 },
+        { keys: ['zucchini'], kcal: 17, p: 1.2, c: 3.1, f: 0.3, sugar: 2.5, salt: 0.01, pieceG: 200 },
+        { keys: ['aubergine'], kcal: 25, p: 1.0, c: 5.9, f: 0.2, sugar: 3.5, salt: 0.01, pieceG: 300 },
+        { keys: ['gurke', 'salatgurke'], kcal: 15, p: 0.7, c: 3.6, f: 0.1, sugar: 1.7, salt: 0.01, pieceG: 350 },
+        { keys: ['brokkoli'], kcal: 34, p: 2.8, c: 6.6, f: 0.4, sugar: 1.7, salt: 0.03, pieceG: 400 },
+        { keys: ['blumenkohl'], kcal: 25, p: 1.9, c: 5.0, f: 0.3, sugar: 1.9, salt: 0.03, pieceG: 600 },
+        { keys: ['kohlrabi'], kcal: 27, p: 1.7, c: 6.2, f: 0.1, sugar: 2.6, salt: 0.02, pieceG: 250 },
+        { keys: ['sellerie', 'staudensellerie', 'knollensellerie'], kcal: 22, p: 1.2, c: 3.0, f: 0.2, sugar: 1.5, salt: 0.08, pieceG: 250 },
+        { keys: ['kürbis', 'hokkaido', 'butternut'], kcal: 45, p: 1.5, c: 9.0, f: 0.3, sugar: 3.5, salt: 0.01, pieceG: 800 },
+        { keys: ['rote bete', 'rote beete'], kcal: 43, p: 1.6, c: 9.6, f: 0.2, sugar: 6.8, salt: 0.08, pieceG: 150 },
+        { keys: ['spinat', 'blattspinat', 'rahmspinat'], kcal: 23, p: 2.9, c: 3.6, f: 0.4, sugar: 0.4, salt: 0.08, pieceG: 250 },
+        { keys: ['salat', 'feldsalat', 'rucola', 'eisbergsalat'], kcal: 16, p: 1.3, c: 2.5, f: 0.2, sugar: 1.2, salt: 0.02, pieceG: 150 },
+        { keys: ['champignon', 'pilz', 'pfifferling', 'kräuterseitling'], kcal: 22, p: 3.1, c: 3.3, f: 0.3, sugar: 2.0, salt: 0.01, pieceG: 250 },
+        { keys: ['avocado'], kcal: 160, p: 2.0, c: 8.5, f: 14.7, sugar: 0.7, salt: 0.01, pieceG: 150 },
+        { keys: ['banane'], kcal: 89, p: 1.1, c: 22.8, f: 0.3, sugar: 12.2, salt: 0.01, pieceG: 120 },
+        { keys: ['apfel', 'äpfel'], kcal: 52, p: 0.3, c: 13.8, f: 0.2, sugar: 10.4, salt: 0.01, pieceG: 150 },
+        { keys: ['birne'], kcal: 57, p: 0.4, c: 15.2, f: 0.1, sugar: 9.8, salt: 0.01, pieceG: 160 },
+        { keys: ['erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'beeren'], kcal: 45, p: 0.8, c: 10.0, f: 0.4, sugar: 7.5, salt: 0.01, pieceG: 250 },
+        { keys: ['zitrone', 'limette', 'orange'], kcal: 42, p: 0.8, c: 9.5, f: 0.2, sugar: 7.5, salt: 0.01, pieceG: 100 },
+
+        // Öle, Nüsse, Backen & Würzmittel
+        { keys: ['olivenöl', 'rapsöl', 'sonnenblumenöl', 'kokosöl', 'sesamöl', 'öl'], kcal: 884, p: 0.0, c: 0.0, f: 100.0, sugar: 0.0, salt: 0.0, pieceG: 500 },
+        { keys: ['mandel', 'walnuss', 'haselnuss', 'cashew', 'erdnuss', 'pinienkerne', 'nüsse'], kcal: 610, p: 18.0, c: 12.0, f: 54.0, sugar: 4.5, salt: 0.02, pieceG: 100 },
+        { keys: ['erdnussbutter', 'mandelmus', 'tahini', 'sesammus'], kcal: 600, p: 22.0, c: 14.0, f: 50.0, sugar: 6.0, salt: 0.5, pieceG: 250 },
+        { keys: ['zucker', 'puderzucker', 'brauner zucker', 'rohrzucker', 'vanillezucker'], kcal: 400, p: 0.0, c: 100.0, f: 0.0, sugar: 100.0, salt: 0.0, pieceG: 1000 },
+        { keys: ['honig', 'ahornsirup', 'agavendicksaft'], kcal: 304, p: 0.3, c: 82.0, f: 0.0, sugar: 82.0, salt: 0.01, pieceG: 250 },
+        { keys: ['schokolade', 'kuvertüre', 'schokodrops'], kcal: 540, p: 6.0, c: 55.0, f: 32.0, sugar: 48.0, salt: 0.1, pieceG: 100 },
+        { keys: ['backkakao', 'kakaopulver'], kcal: 350, p: 20.0, c: 15.0, f: 21.0, sugar: 1.0, salt: 0.05, pieceG: 125 },
+        { keys: ['salz', 'meersalz', 'kräutersalz'], kcal: 0, p: 0.0, c: 0.0, f: 0.0, sugar: 0.0, salt: 100.0, pieceG: 500 },
+        { keys: ['sojasoße', 'sojasauce'], kcal: 53, p: 8.0, c: 4.9, f: 0.1, sugar: 0.4, salt: 14.0, pieceG: 150 },
+        { keys: ['pesto'], kcal: 450, p: 5.0, c: 6.0, f: 45.0, sugar: 2.0, salt: 2.8, pieceG: 190 },
+        { keys: ['ketchup', 'barbecue', 'grillsoße'], kcal: 112, p: 1.2, c: 25.0, f: 0.2, sugar: 22.0, salt: 1.8, pieceG: 500 },
+        { keys: ['senf'], kcal: 110, p: 6.0, c: 6.0, f: 6.5, sugar: 3.0, salt: 4.5, pieceG: 200 },
+        { keys: ['mayonnaise', 'remoulade'], kcal: 680, p: 1.2, c: 2.5, f: 74.0, sugar: 2.0, salt: 1.3, pieceG: 250 },
+        { keys: ['brühe', 'gemüsebrühe', 'hühnerbrühe'], kcal: 5, p: 0.2, c: 0.8, f: 0.1, sugar: 0.4, salt: 0.9, pieceG: 500 }
+    ];
 
     const form = document.getElementById('addForm');
     const formCard = document.getElementById('formCard');
@@ -1203,10 +1493,10 @@
     };
 
     const recipeTagLabels = {
+        'Kindgerecht': '👶 Kindgerecht',
         'Schnell': '⚡ Schnell',
         'Vegetarisch': '🥦 Vegetarisch',
         'Grillen': '🔥 Grillen / BBQ',
-        'Familie': '👶 Familie / Kind',
         'Einfrierbar': '🧊 Einfrierbar'
     };
 
@@ -1214,7 +1504,180 @@
         'ObstGemuese', 'FleischFisch', 'Molkerei', 'Konserven', 'Trockenwaren', 'Gewürze', 'Backen', 'Getränke', 'Sonstiges'
     ];
 
-    // --- SCREEN WAKE LOCK (DISPLAY BEIM KOCHEN ANLASSEN) ---
+    // --- 3-STUFIGE NÄHRWERT-AUTOMATIK ---
+    function normalizeNutKey(name) {
+        return (name || '').toLowerCase().trim().replace(/[.$/[\]#]/g, '_');
+    }
+
+    function lookupNutritionPer100g(ingredientName) {
+        const lower = (ingredientName || '').toLowerCase().trim();
+        if (!lower) return null;
+
+        // Stufe 1: Exakte Produkt-Nährwerte aus eurem aktuellen Vorrat
+        const pantryMatches = findMatchingPantryItems(lower);
+        const withNutrition = pantryMatches.find(m => m.nutrition && typeof m.nutrition.kcal === 'number');
+        if (withNutrition) {
+            return { ...withNutrition.nutrition, pieceG: 100 };
+        }
+
+        // Stufe 2: Erweiterte Basis-Datenbank (~120 Standardzutaten)
+        for (const entry of BASE_NUTRITION_DB) {
+            if (entry.keys.some(k => lower.includes(k))) {
+                return entry;
+            }
+        }
+
+        // Stufe 3: Gelerntes Firebase-Nährwert-Wörterbuch aus früheren Rezepten
+        const safeKey = normalizeNutKey(lower);
+        if (learnedNutritionDict[safeKey]) {
+            return { ...learnedNutritionDict[safeKey], pieceG: 100 };
+        }
+
+        return null;
+    }
+
+    async function fetchAndLearnMissingNutrition(ingredients) {
+        let learnedAny = false;
+
+        for (const ing of ingredients) {
+            const cleanName = (ing.name || '').trim();
+            if (!cleanName || lookupNutritionPer100g(cleanName)) continue;
+
+            try {
+                const url = `https://de.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(cleanName)}&search_simple=1&action=process&json=1&page_size=5&fields=product_name,nutriments`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data && Array.isArray(data.products) && data.products.length > 0) {
+                    const validSamples = data.products
+                        .map(p => p.nutriments || {})
+                        .filter(n => typeof n['energy-kcal_100g'] === 'number' && n['energy-kcal_100g'] >= 0 && n['energy-kcal_100g'] <= 900);
+
+                    if (validSamples.length > 0) {
+                        const avg = (field) => {
+                            const vals = validSamples.map(s => s[field]).filter(v => typeof v === 'number' && !isNaN(v));
+                            if (vals.length === 0) return 0;
+                            return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10;
+                        };
+
+                        const learnedEntry = {
+                            name: cleanName,
+                            kcal: Math.round(avg('energy-kcal_100g')),
+                            p: avg('proteins_100g'),
+                            c: avg('carbohydrates_100g'),
+                            f: avg('fat_100g'),
+                            sugar: avg('sugars_100g'),
+                            salt: avg('salt_100g')
+                        };
+
+                        const safeKey = normalizeNutKey(cleanName);
+                        learnedNutritionDict[safeKey] = learnedEntry;
+                        learnedAny = true;
+
+                        await setDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "naehrwerte", safeKey), learnedEntry);
+                    }
+                }
+            } catch (e) {
+                console.warn("Online-Nährwertsuche übersprungen für:", cleanName);
+            }
+        }
+
+        if (learnedAny) {
+            renderRecipes();
+        }
+    }
+
+    function estimateIngredientGrams(ing, nutEntry) {
+        const amt = ing.amount || 0;
+        if (amt <= 0) return 0;
+        const u = ing.unit || 'Stk.';
+
+        if (u === 'g' || u === 'ml') return amt;
+        if (u === 'kg' || u === 'l') return amt * 1000;
+        if (u === 'TL') return amt * 5;
+        if (u === 'EL') return amt * 15;
+        if (u === 'Prise') return amt * 0.5;
+        if (u === 'Zehe') return amt * 4;
+        if (u === 'Bund') return amt * 50;
+        if (u === 'Dosen') return amt * 400;
+        if (u === 'Stk.') return amt * (nutEntry && nutEntry.pieceG ? nutEntry.pieceG : 100);
+        return amt * 100;
+    }
+
+    function calculateRecipeNutrition(rec, customServings = null) {
+        const baseServings = rec.servings || 4;
+        const targetServings = customServings || recipeServingsOverride[rec.id] || baseServings;
+        const factor = targetServings / baseServings;
+
+        let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0, totalSugar = 0, totalSalt = 0;
+        let matchedCount = 0;
+        const ings = rec.ingredients || [];
+
+        ings.forEach(ing => {
+            const scaledIng = { ...ing, amount: ing.amount ? ing.amount * factor : 0 };
+            const nut = lookupNutritionPer100g(ing.name);
+            if (nut && scaledIng.amount > 0) {
+                const grams = estimateIngredientGrams(scaledIng, nut);
+                const mult = grams / 100;
+                totalKcal += (nut.kcal || 0) * mult;
+                totalP += (nut.p || 0) * mult;
+                totalC += (nut.c || 0) * mult;
+                totalF += (nut.f || 0) * mult;
+                totalSugar += (nut.sugar || 0) * mult;
+                totalSalt += (nut.salt || 0) * mult;
+                matchedCount++;
+            }
+        });
+
+        const perServing = {
+            kcal: Math.round(totalKcal / targetServings),
+            p: Math.round((totalP / targetServings) * 10) / 10,
+            c: Math.round((totalC / targetServings) * 10) / 10,
+            f: Math.round((totalF / targetServings) * 10) / 10,
+            sugar: Math.round((totalSugar / targetServings) * 10) / 10,
+            salt: Math.round((totalSalt / targetServings) * 100) / 100
+        };
+
+        return {
+            hasData: matchedCount > 0,
+            coverage: ings.length > 0 ? Math.round((matchedCount / ings.length) * 100) : 0,
+            perServing,
+            totalKcal: Math.round(totalKcal)
+        };
+    }
+
+    function analyzeRecipeCharacteristics(rec) {
+        const ings = rec.ingredients || [];
+        const tags = rec.tags || [];
+        const text = `${rec.title || ''} ${ings.map(i => i.name).join(' ')} ${rec.notes || ''}`.toLowerCase();
+        const nut = calculateRecipeNutrition(rec, rec.servings || 4);
+
+        const meatFishKeywords = ['fleisch', 'hack', 'hähnchen', 'hühnchen', 'pute', 'schnitzel', 'steak', 'wurst', 'schinken', 'speck', 'bacon', 'fisch', 'lachs', 'thunfisch', 'garnelen', 'salami'];
+        const nonKidKeywords = ['chili', 'jalapeño', 'tabasco', 'cayenne', 'alkohol', 'wein', 'bier', 'rum', 'espresso', 'kaffee', 'roh'];
+
+        const isVeggie = tags.includes('Vegetarisch') || !meatFishKeywords.some(w => text.includes(w));
+        const isKidFriendly = tags.includes('Kindgerecht') || (!nonKidKeywords.some(w => text.includes(w)) && nut.perServing.salt <= 1.8);
+        const isQuick = tags.includes('Schnell') || ings.length <= 6;
+        const isMealPrep = tags.includes('Einfrierbar') || ['eintopf', 'suppe', 'auflauf', 'lasagne', 'bolognese', 'curry', 'gulasch', 'chili'].some(w => text.includes(w));
+        const isHighProtein = nut.perServing.p >= 22;
+        const isLight = nut.hasData && nut.perServing.kcal > 0 && nut.perServing.kcal <= 520;
+        const isLowCarb = nut.hasData && nut.perServing.c <= 25;
+        const isBudget = ['kartoffel', 'linsen', 'haferflocken', 'ei', 'nudeln', 'reis', 'bohn', 'möhre', 'karotte'].some(w => text.includes(w)) && !['lachs', 'steak', 'filet', 'garnelen', 'pinienkerne'].some(w => text.includes(w));
+
+        return {
+            isVeggie,
+            isKidFriendly,
+            isQuick,
+            isMealPrep,
+            isHighProtein,
+            isLight,
+            isLowCarb,
+            isBudget,
+            nut
+        };
+    }
+
+    // --- SCREEN WAKE LOCK ---
     const wakeLockBtn = document.getElementById('wakeLockBtn');
     wakeLockBtn.addEventListener('click', async () => {
         if (!('wakeLock' in navigator)) {
@@ -1242,7 +1705,7 @@
         }
     });
 
-    // --- KOMBINIERTES MHD-SYSTEM (TEXTFELD + KALENDER SYNCHRON) ---
+    // --- KOMBINIERTES MHD-SYSTEM ---
     function parseFlexibleDateToIso(rawStr) {
         const val = (rawStr || '').trim();
         if (!val) return '';
@@ -1393,6 +1856,44 @@
         mhdHint.textContent = `💡 Richtwert-MHD vorgeschlagen (+${daysFromNow} Tage – ${reasonText})`;
     }
 
+    function clearNutritionFields() {
+        ['nutKcal', 'nutProtein', 'nutCarbs', 'nutFat', 'nutSugar', 'nutSalt'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+    }
+
+    function fillNutritionFields(nut) {
+        if (!nut) {
+            clearNutritionFields();
+            return;
+        }
+        document.getElementById('nutKcal').value = nut.kcal ?? '';
+        document.getElementById('nutProtein').value = nut.p ?? '';
+        document.getElementById('nutCarbs').value = nut.c ?? '';
+        document.getElementById('nutFat').value = nut.f ?? '';
+        document.getElementById('nutSugar').value = nut.sugar ?? '';
+        document.getElementById('nutSalt').value = nut.salt ?? '';
+    }
+
+    function readNutritionFields() {
+        const kcal = parseFloat(document.getElementById('nutKcal').value);
+        const p = parseFloat(document.getElementById('nutProtein').value);
+        const c = parseFloat(document.getElementById('nutCarbs').value);
+        const f = parseFloat(document.getElementById('nutFat').value);
+        const sugar = parseFloat(document.getElementById('nutSugar').value);
+        const salt = parseFloat(document.getElementById('nutSalt').value);
+
+        if ([kcal, p, c, f, sugar, salt].every(v => isNaN(v))) return null;
+        return {
+            kcal: !isNaN(kcal) ? kcal : 0,
+            p: !isNaN(p) ? p : 0,
+            c: !isNaN(c) ? c : 0,
+            f: !isNaN(f) ? f : 0,
+            sugar: !isNaN(sugar) ? sugar : 0,
+            salt: !isNaN(salt) ? salt : 0
+        };
+    }
+
     toggleFormBtn.addEventListener('click', () => {
         if (formCard.classList.contains('hidden')) {
             userTouchedMhd = false;
@@ -1400,6 +1901,7 @@
             mhdParsedPreview.textContent = '';
             mhdIsoValue.value = '';
             mhdCalendar.value = '';
+            clearNutritionFields();
             formCard.classList.remove('hidden');
             toggleFormBtn.classList.add('hidden');
             document.getElementById('name').focus();
@@ -1414,6 +1916,7 @@
         mhdParsedPreview.textContent = '';
         mhdIsoValue.value = '';
         mhdCalendar.value = '';
+        clearNutritionFields();
         document.getElementById('editId').value = '';
         document.getElementById('lastScannedBarcode').value = '';
         document.getElementById('amount').value = 1;
@@ -1677,6 +2180,8 @@
     document.getElementById('name').addEventListener('input', (e) => {
         if (!document.getElementById('editId').value) {
             suggestStorageAndCategory(e.target.value, '', 'category', 'location', true);
+            const autoNut = lookupNutritionPer100g(e.target.value);
+            if (autoNut) fillNutritionFields(autoNut);
         }
     });
 
@@ -1690,7 +2195,7 @@
         suggestStorageAndCategory(e.target.value, '', 'shopCategory', null, false);
     });
 
-    // --- BARCODE SCANNER ---
+    // --- BARCODE SCANNER INKL. NÄHRWERT-SCRAPER ---
     const toggleScanBtn = document.getElementById('toggleScanBtn');
     const readerWrapper = document.getElementById('reader-wrapper');
     const scanFeedback = document.getElementById('scan-feedback');
@@ -1718,7 +2223,7 @@
 
     async function fetchProductByBarcode(barcode) {
         document.getElementById('lastScannedBarcode').value = barcode;
-        showFeedback(`🔍 Suche Produkt für Code ${barcode}...`);
+        showFeedback(`🔍 Suche Produkt & Nährwerte für Code ${barcode}...`);
 
         try {
             const customSnap = await getDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "barcodes", barcode));
@@ -1730,6 +2235,7 @@
                 document.getElementById('category').value = c.category || 'Sonstiges';
                 document.getElementById('location').value = c.location || 'Vorratsschrank';
                 if (c.minAmount) document.getElementById('minAmount').value = c.minAmount;
+                if (c.nutrition) fillNutritionFields(c.nutrition);
                 suggestStorageAndCategory(c.name || '', '', 'category', 'location', true);
                 showFeedback(`⭐ Aus eigenem Merkzettel geladen: "${c.name}"`);
                 return;
@@ -1760,6 +2266,23 @@
                     }
                 }
 
+                const n = p.nutriments || {};
+                const scrapedNut = {
+                    kcal: n['energy-kcal_100g'] ?? (n['energy_100g'] ? Math.round(n['energy_100g'] / 4.184) : null),
+                    p: n['proteins_100g'] ?? null,
+                    c: n['carbohydrates_100g'] ?? null,
+                    f: n['fat_100g'] ?? null,
+                    sugar: n['sugars_100g'] ?? null,
+                    salt: n['salt_100g'] ?? null
+                };
+                const hasScrapedNut = Object.values(scrapedNut).some(v => v !== null && !isNaN(v));
+                if (hasScrapedNut) {
+                    fillNutritionFields(scrapedNut);
+                } else {
+                    const fallbackNut = lookupNutritionPer100g(fullName);
+                    if (fallbackNut) fillNutritionFields(fallbackNut);
+                }
+
                 const rawTags = [
                     ...(p.categories_tags || []),
                     p.categories || '',
@@ -1768,7 +2291,8 @@
                 ].join(' ').toLowerCase();
 
                 suggestStorageAndCategory(fullName, rawTags, 'category', 'location', true);
-                showFeedback(`✅ Gefunden: "${fullName || barcode}" – bitte prüfen!`);
+                const nutInfoText = hasScrapedNut ? ` (${Math.round(scrapedNut.kcal || 0)} kcal/100g erfasst)` : '';
+                showFeedback(`✅ Gefunden: "${fullName || barcode}"${nutInfoText} – bitte prüfen!`);
             } else {
                 showFeedback(`⚠️ Unbekannter Code (${barcode}). Einmal eingeben – die App merkt ihn sich!`, true);
             }
@@ -1803,7 +2327,7 @@
         }
     });
 
-    // --- AUTOCOMPLETE DATALIST AUS VORRAT & STATISTIK AKTUALISIEREN ---
+    // --- AUTOCOMPLETE DATALIST ---
     function refreshAutocompleteDatalist() {
         const names = new Set();
         inventory.forEach(i => { if (i.name) names.add(i.name.trim()); });
@@ -1813,6 +2337,9 @@
                     if (entry.name) names.add(entry.name.trim());
                 });
             }
+        });
+        Object.values(learnedNutritionDict).forEach(entry => {
+            if (entry.name) names.add(entry.name.trim());
         });
         const datalist = document.getElementById('pantrySuggestions');
         datalist.innerHTML = '';
@@ -1855,6 +2382,15 @@
         });
         refreshAutocompleteDatalist();
         if (!viewEinkauf.classList.contains('hidden')) renderStaplesRow();
+    });
+
+    onSnapshot(naehrwerteRef, (snapshot) => {
+        learnedNutritionDict = {};
+        snapshot.docs.forEach(d => {
+            learnedNutritionDict[d.id] = d.data();
+        });
+        refreshAutocompleteDatalist();
+        if (!viewRezepte.classList.contains('hidden')) renderRecipes();
     });
 
     function updateAlertBadge() {
@@ -1913,6 +2449,7 @@
         const editId = document.getElementById('editId').value;
         const scannedBarcode = document.getElementById('lastScannedBarcode').value;
         const minVal = parseFloat(document.getElementById('minAmount').value);
+        const nutritionObj = readNutritionFields();
 
         const itemData = {
             name: document.getElementById('name').value.trim(),
@@ -1921,7 +2458,8 @@
             category: document.getElementById('category').value,
             location: document.getElementById('location').value,
             mhd: parsedIsoMhd,
-            minAmount: !isNaN(minVal) && minVal > 0 ? minVal : null
+            minAmount: !isNaN(minVal) && minVal > 0 ? minVal : null,
+            nutrition: nutritionObj
         };
 
         if (scannedBarcode) {
@@ -1931,7 +2469,8 @@
                 unit: itemData.unit,
                 category: itemData.category,
                 location: itemData.location,
-                minAmount: itemData.minAmount
+                minAmount: itemData.minAmount,
+                nutrition: nutritionObj
             });
         }
 
@@ -1949,7 +2488,8 @@
                 if (confirm(`🔄 "${duplicate.name}" (${duplicate.location}) ist mit demselben MHD schon da (${duplicate.amount} ${duplicate.unit}).\n\nSoll ich die Menge einfach auf ${combinedQty} ${duplicate.unit} erhöhen?`)) {
                     closeFormCard();
                     await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", duplicate.id), {
-                        amount: combinedQty
+                        amount: combinedQty,
+                        nutrition: nutritionObj || duplicate.nutrition || null
                     });
                     return;
                 }
@@ -2000,6 +2540,7 @@
         document.getElementById('category').value = item.category;
         document.getElementById('location').value = item.location || 'Vorratsschrank';
         document.getElementById('minAmount').value = item.minAmount || '';
+        fillNutritionFields(item.nutrition || lookupNutritionPer100g(item.name));
 
         if (item.mhd && /^\d{4}-\d{2}-\d{2}$/.test(item.mhd)) {
             const [y, m, d] = item.mhd.split('-');
@@ -2179,6 +2720,7 @@
             const isLow = item.minAmount && item.amount <= item.minAmount;
             const statusClass = item.isOpened ? 'opened-item' : (mhdInfo.cssClass || (isLow ? 'low-stock' : ''));
             const safeItemName = item.name.replace(/'/g, "\\'");
+            const kcalTag = item.nutrition && item.nutrition.kcal ? `<span class="badge badge-kcal">${Math.round(item.nutrition.kcal)} kcal/100g</span>` : '';
 
             const card = document.createElement('div');
             card.className = `item-card ${statusClass}`;
@@ -2189,6 +2731,7 @@
                         ${item.isOpened ? `<span class="badge badge-opened">${getOpenedDaysText(item.openedAt)}</span>` : ''}
                         <span class="badge">${catText}</span>
                         <span class="badge badge-loc">📍 ${locText}</span>
+                        ${kcalTag}
                         ${isLow ? `<span class="badge badge-low">📉 Knapp (Min: ${item.minAmount})</span>` : ''}
                         <span>${mhdInfo.text}</span>
                     </div>
@@ -2215,7 +2758,7 @@
     filterCategory.addEventListener('change', renderList);
     filterLocation.addEventListener('change', renderList);
 
-    // --- INTELLIGENTE ZUTATEN-ERKENNUNG (TRENNT Z.B. KOKOSMILCH, HAFERMILCH & KUHMILCH) ---
+    // --- INTELLIGENTE ZUTATEN-ERKENNUNG ---
     function classifyIngredientGroup(nameStr) {
         const s = (nameStr || '').toLowerCase().trim();
 
@@ -2284,7 +2827,6 @@
             return itemName.includes(reqName) || reqName.includes(itemName);
         });
 
-        // FEFO-Sortierung: Zuerst bereits angebrochene Packungen, dann kürzestes MHD
         return matches.sort((a, b) => {
             if (a.isOpened && !b.isOpened) return -1;
             if (!a.isOpened && b.isOpened) return 1;
@@ -2294,7 +2836,224 @@
         });
     }
 
-    // --- REZEPTE: TAGS, SMART-PARSER (INKL. BRUCHZEICHEN) & ZUTATEN-EINHEITEN ---
+    // --- WOCHENPLAN-GENERATOR (MIT KOMBINIERBAREN SCHWERPUNKTEN) ---
+    const togglePlannerBtn = document.getElementById('togglePlannerBtn');
+    const plannerBox = document.getElementById('plannerBox');
+    const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
+    togglePlannerBtn.addEventListener('click', () => {
+        plannerBox.classList.remove('hidden');
+        togglePlannerBtn.classList.add('hidden');
+    });
+
+    document.getElementById('closePlannerBtn').addEventListener('click', () => {
+        plannerBox.classList.add('hidden');
+        togglePlannerBtn.classList.remove('hidden');
+    });
+
+    document.querySelectorAll('#plannerFocusChips .focus-chip').forEach(chip => {
+        chip.addEventListener('click', () => chip.classList.toggle('active'));
+    });
+
+    function getActiveFocusModes() {
+        return Array.from(document.querySelectorAll('#plannerFocusChips .focus-chip.active')).map(c => c.dataset.focus);
+    }
+
+    function scoreRecipeForDay(rec, dayIndex, activeFocuses, alreadyChosenIds, chosenRecipes) {
+        if (alreadyChosenIds.has(rec.id)) return -99999;
+
+        const targetServings = parseFloat(document.getElementById('planServings').value) || 2.5;
+        const baseServings = rec.servings || 4;
+        const factor = targetServings / baseServings;
+        const scaledIngs = (rec.ingredients || []).map(ing => ({
+            ...ing,
+            amount: ing.amount ? ing.amount * factor : null
+        }));
+
+        const info = analyzeRecipeCharacteristics(rec);
+        let score = 50;
+
+        let readyCount = 0;
+        let urgentMhdBonus = 0;
+        scaledIngs.forEach(ing => {
+            const check = checkIngredientStock(ing);
+            if (check.status === 'ok') readyCount++;
+            const matches = findMatchingPantryItems(ing.name);
+            matches.forEach(m => {
+                const mhd = getMhdInfo(m.mhd);
+                if (mhd.diffDays <= 7) urgentMhdBonus += 18;
+                else if (mhd.diffDays <= 14) urgentMhdBonus += 8;
+                if (m.isOpened) urgentMhdBonus += 10;
+            });
+        });
+
+        const pantryRatio = scaledIngs.length > 0 ? readyCount / scaledIngs.length : 0;
+        const pantryWeight = activeFocuses.includes('PANTRY') ? 55 : 22;
+        score += pantryRatio * pantryWeight + urgentMhdBonus;
+
+        if (activeFocuses.includes('KID')) {
+            score += info.isKidFriendly ? 35 : -45;
+        }
+        if (activeFocuses.includes('VEGGIE')) {
+            score += info.isVeggie ? 40 : -80;
+        }
+        if (activeFocuses.includes('QUICK_WEEK')) {
+            const isWeekend = dayIndex >= 5;
+            if (!isWeekend) {
+                score += info.isQuick ? 30 : -15;
+            } else {
+                score += !info.isQuick ? 15 : 5;
+            }
+        }
+        if (activeFocuses.includes('LIGHT')) {
+            if (info.isLight) score += 30;
+            else if (info.nut.perServing.kcal > 700) score -= 25;
+        }
+        if (activeFocuses.includes('PROTEIN')) {
+            score += info.isHighProtein ? 30 : (info.nut.perServing.p * 0.6);
+        }
+        if (activeFocuses.includes('LOW_CARB')) {
+            score += info.isLowCarb ? 35 : -(info.nut.perServing.c * 0.4);
+        }
+        if (activeFocuses.includes('MEAL_PREP')) {
+            score += info.isMealPrep ? 35 : -5;
+        }
+        if (activeFocuses.includes('BUDGET')) {
+            score += info.isBudget ? 28 : -5;
+        }
+
+        if (chosenRecipes.length > 0) {
+            const prev = chosenRecipes[chosenRecipes.length - 1];
+            const prevInfo = analyzeRecipeCharacteristics(prev);
+
+            if (!info.isVeggie && !prevInfo.isVeggie) score -= 18;
+            if (info.nut.perServing.kcal > 650 && prevInfo.nut.perServing.kcal > 650) score -= 16;
+
+            const wordsA = new Set((rec.title || '').toLowerCase().split(/\s+/).filter(w => w.length > 4));
+            const wordsB = (prev.title || '').toLowerCase().split(/\s+/).filter(w => w.length > 4);
+            if (wordsB.some(w => wordsA.has(w))) score -= 25;
+        }
+
+        score += Math.random() * 12;
+        return score;
+    }
+
+    function generateBalancedWeekPlan() {
+        if (recipes.length === 0) {
+            document.getElementById('generatedPlanResult').innerHTML = `
+                <div class="empty-state" style="padding:16px; font-size:0.88rem;">
+                    Ihr habt noch keine Rezepte gespeichert. Speichert erst ein paar eurer Lieblingsgerichte – dann stellt euch der Generator daraus einen ausgewogenen Wochenplan zusammen!
+                </div>`;
+            return;
+        }
+
+        const numDays = parseInt(document.getElementById('planDays').value, 10) || 7;
+        const activeFocuses = getActiveFocusModes();
+        const chosen = [];
+        const chosenIds = new Set();
+
+        for (let d = 0; d < numDays; d++) {
+            const candidates = recipes
+                .map(r => ({ rec: r, score: scoreRecipeForDay(r, d, activeFocuses, chosenIds, chosen) }))
+                .filter(c => c.score > -50000)
+                .sort((a, b) => b.score - a.score);
+
+            if (candidates.length === 0) break;
+            const pick = candidates[0].rec;
+            chosen.push(pick);
+            chosenIds.add(pick.id);
+        }
+
+        currentProposedPlan = chosen;
+        renderProposedPlan();
+    }
+
+    window.rerollSinglePlanDay = function(dayIdx) {
+        if (recipes.length <= currentProposedPlan.length) {
+            alert('Keine weiteren alternativen Rezepte in eurer Sammlung verfügbar.');
+            return;
+        }
+        const activeFocuses = getActiveFocusModes();
+        const usedIds = new Set(currentProposedPlan.map(r => r.id));
+        const otherRecipes = currentProposedPlan.filter((_, idx) => idx !== dayIdx);
+
+        const candidates = recipes
+            .filter(r => !usedIds.has(r.id))
+            .map(r => ({ rec: r, score: scoreRecipeForDay(r, dayIdx, activeFocuses, usedIds, otherRecipes) }))
+            .sort((a, b) => b.score - a.score);
+
+        if (candidates.length > 0) {
+            currentProposedPlan[dayIdx] = candidates[0].rec;
+            renderProposedPlan();
+        }
+    };
+
+    window.applyGeneratedPlanToWeek = async function() {
+        if (currentProposedPlan.length === 0) return;
+        const targetServings = parseFloat(document.getElementById('planServings').value) || 2.5;
+
+        for (const rec of currentProposedPlan) {
+            recipeServingsOverride[rec.id] = targetServings;
+            if (!rec.plannedThisWeek) {
+                await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", rec.id), {
+                    plannedThisWeek: true
+                });
+            }
+        }
+
+        plannerBox.classList.add('hidden');
+        togglePlannerBtn.classList.remove('hidden');
+        alert(`✅ ${currentProposedPlan.length} Gerichte für je ${targetServings} Portionen wurden in euren Wochenplan übernommen!`);
+    };
+
+    function renderProposedPlan() {
+        const container = document.getElementById('generatedPlanResult');
+        if (currentProposedPlan.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const targetServings = parseFloat(document.getElementById('planServings').value) || 2.5;
+        let kcalSum = 0, kcalDays = 0;
+
+        const rowsHtml = currentProposedPlan.map((rec, idx) => {
+            const nut = calculateRecipeNutrition(rec, targetServings);
+            if (nut.hasData && nut.perServing.kcal > 0) {
+                kcalSum += nut.perServing.kcal;
+                kcalDays++;
+            }
+            const info = analyzeRecipeCharacteristics(rec);
+            const badges = [
+                info.isKidFriendly ? '👶' : '',
+                info.isVeggie ? '🥦' : '',
+                info.isQuick ? '⚡' : '',
+                nut.hasData ? `${nut.perServing.kcal} kcal/Port.` : ''
+            ].filter(Boolean).join(' • ');
+
+            return `
+                <div class="plan-day-row">
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:700; color:#1d4ed8;">${dayNames[idx] || `Tag ${idx + 1}`}</div>
+                        <strong style="font-size:0.92rem;">${rec.title}</strong>
+                        ${badges ? `<div style="font-size:0.75rem; color:#4b5563;">${badges}</div>` : ''}
+                    </div>
+                    <button type="button" class="icon-btn" onclick="rerollSinglePlanDay(${idx})" title="Diesen Tag neu würfeln">🎲</button>
+                </div>
+            `;
+        }).join('');
+
+        const avgKcal = kcalDays > 0 ? Math.round(kcalSum / kcalDays) : 0;
+
+        container.innerHTML = `
+            ${avgKcal > 0 ? `<div style="font-size:0.8rem; color:#1e3a8a; font-weight:600; margin-bottom:8px;">📊 Schnitt: ca. ${avgKcal} kcal pro Portion & Hauptmahlzeit (${targetServings} Portionen/Tag)</div>` : ''}
+            ${rowsHtml}
+            <button type="button" class="add-btn" style="background:var(--success); margin-top:6px;" onclick="applyGeneratedPlanToWeek()">📌 Kompletten Vorschlag in Wochenplan übernehmen</button>
+        `;
+    }
+
+    document.getElementById('generatePlanBtn').addEventListener('click', generateBalancedWeekPlan);
+
+    // --- REZEPTE: TAGS, SMART-PARSER & ZUTATEN-EINHEITEN ---
     const toggleRecipeFormBtn = document.getElementById('toggleRecipeFormBtn');
     const recipeFormCard = document.getElementById('recipeFormCard');
     const ingredientRows = document.getElementById('ingredientRows');
@@ -2366,9 +3125,9 @@
             const cleanLine = normalizeUnicodeFractions(line);
             const lower = cleanLine.toLowerCase();
 
-            const servMatch = lower.match(/(?:für|ergibt)\s+(\d+)\s*(?:personen|portionen|stück)/i);
+            const servMatch = lower.match(/(?:für|ergibt)\s+(\d+(?:[.,]\d+)?)\s*(?:personen|portionen|stück)/i);
             if (servMatch) {
-                document.getElementById('recServings').value = parseInt(servMatch[1], 10) || 4;
+                document.getElementById('recServings').value = parseFloat(servMatch[1].replace(',', '.')) || 4;
                 inStepsSection = false;
                 return;
             }
@@ -2503,7 +3262,7 @@
         e.preventDefault();
         const editId = document.getElementById('editRecipeId').value;
         const title = document.getElementById('recTitle').value.trim();
-        const servings = parseInt(document.getElementById('recServings').value, 10) || 4;
+        const servings = parseFloat(document.getElementById('recServings').value) || 4;
         const tags = getSelectedFormTags();
         const notes = document.getElementById('recNotes').value.trim();
         const rows = ingredientRows.querySelectorAll('.ing-builder-row');
@@ -2534,6 +3293,9 @@
         } else {
             await addDoc(rezepteRef, { title, servings, tags, notes, ingredients, plannedThisWeek: false, lastCooked: null });
         }
+
+        // Stufe 3: Unbekannte Zutaten im Hintergrund über OpenFoodFacts abfragen & dauerhaft merken
+        fetchAndLearnMissingNutrition(ingredients);
     });
 
     window.editRecipe = function(id) {
@@ -2576,7 +3338,7 @@
         if (!rec) return;
         const baseServings = rec.servings || 4;
         const current = recipeServingsOverride[id] || baseServings;
-        const next = Math.max(1, Math.min(20, current + delta));
+        const next = Math.max(0.5, Math.min(20, Math.round((current + delta) * 10) / 10));
         recipeServingsOverride[id] = next;
         renderRecipes();
     };
@@ -2664,14 +3426,12 @@
             if (isMetricLarge(pantryUnit)) return (recAmount * 1) / 1000;
             return 0;
         }
-        // Schutz für Zehe/Bund gegenüber Stück (z.B. 2 Zehen Knoblauch löschen nicht 2 ganze Knollen)
         if (['Zehe', 'Bund'].includes(recUnit) && pantryUnit === 'Stk.') {
             return 0;
         }
         return recAmount;
     }
 
-    // --- MULTI-PACK & FEFO-ABZUG INKL. AUTO-ANBRUCH ---
     window.cookRecipe = async function(id) {
         const rec = recipes.find(r => r.id === id);
         if (!rec) return;
@@ -2689,7 +3449,6 @@
             const matches = findMatchingPantryItems(ing.name);
             if (matches.length === 0) continue;
 
-            // Wir rechnen die benötigte Menge zunächst in die Einheit des ersten Treffers um
             let remainingNeededInFirstUnit = convertRecipeAmountToPantryUnit(ing.amount, ing.unit, matches[0].unit);
             if (remainingNeededInFirstUnit <= 0) continue;
 
@@ -2699,7 +3458,6 @@
                 const neededInMatchUnit = convertRecipeAmountToPantryUnit(ing.amount, ing.unit, match.unit);
                 if (neededInMatchUnit <= 0) continue;
 
-                // Verhältnis der bereits abgedeckten Menge berechnen
                 const ratio = remainingNeededInFirstUnit / convertRecipeAmountToPantryUnit(ing.amount, ing.unit, matches[0].unit);
                 const actualNeededHere = Math.round(neededInMatchUnit * ratio * 100) / 100;
 
@@ -2721,13 +3479,11 @@
                     await updateDoc(itemDoc, updatePayload);
                 }
 
-                // Restbedarf für eventuelle weitere Packungen herunterrechnen
                 const coveredFraction = deductedHere / neededInMatchUnit;
                 remainingNeededInFirstUnit = Math.max(0, Math.round((remainingNeededInFirstUnit - (convertRecipeAmountToPantryUnit(ing.amount, ing.unit, matches[0].unit) * coveredFraction)) * 100) / 100);
             }
         }
 
-        // Datum "Zuletzt gekocht" am Rezept speichern
         await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", rec.id), {
             lastCooked: todayIso
         });
@@ -2808,12 +3564,15 @@
 
         const plannedRecipes = recipes.filter(r => r.plannedThisWeek);
         if (plannedRecipes.length > 0) {
-            const chips = plannedRecipes.map(r => `
-                <span class="week-chip">
-                    📌 ${r.title}
-                    <span style="cursor:pointer;" onclick="toggleWeekPlan('${r.id}')" title="Aus Wochenplan entfernen">✕</span>
-                </span>
-            `).join('');
+            const chips = plannedRecipes.map(r => {
+                const s = recipeServingsOverride[r.id] || r.servings || 4;
+                return `
+                    <span class="week-chip">
+                        📌 ${r.title} (${s} P.)
+                        <span style="cursor:pointer;" onclick="toggleWeekPlan('${r.id}')" title="Aus Wochenplan entfernen">✕</span>
+                    </span>
+                `;
+            }).join('');
             weekPlanContainer.innerHTML = `
                 <div class="week-plan-box">
                     <h3>📅 Euer Wochenspeiseplan (${plannedRecipes.length})</h3>
@@ -2835,7 +3594,11 @@
 
             if (activeRecipeTagFilter) {
                 const recTags = rec.tags || [];
-                if (!recTags.includes(activeRecipeTagFilter)) return false;
+                const autoInfo = analyzeRecipeCharacteristics(rec);
+                const matchesTag = recTags.includes(activeRecipeTagFilter) ||
+                    (activeRecipeTagFilter === 'Kindgerecht' && autoInfo.isKidFriendly) ||
+                    (activeRecipeTagFilter === 'Vegetarisch' && autoInfo.isVeggie);
+                if (!matchesTag) return false;
             }
 
             const allReady = scaledIngs.length > 0 && scaledIngs.every(i => checkIngredientStock(i).status === 'ok');
@@ -2871,11 +3634,33 @@
             const scaledIngs = getScaledIngredients(rec);
             const activeServings = recipeServingsOverride[rec.id] || rec.servings || 4;
             const allReady = scaledIngs.length > 0 && scaledIngs.every(i => checkIngredientStock(i).status === 'ok');
+            const nut = calculateRecipeNutrition(rec, activeServings);
 
             const tagsHtml = (rec.tags || []).map(t => `<span class="badge badge-tag">${recipeTagLabels[t] || t}</span>`).join(' ');
             const lastCookedText = rec.lastCooked
                 ? `<span class="badge" style="background:#e0e7ff; color:#3730a3;">🗓️ Zuletzt: ${new Date(rec.lastCooked).toLocaleDateString('de-DE')}</span>`
                 : '';
+
+            let macroHtml = '';
+            if (nut.hasData) {
+                macroHtml = `
+                    <div class="macro-bar" title="Geschätzte Nährwerte pro Portion (Abdeckung: ${nut.coverage}% der Zutaten)">
+                        <span>🔥 ${nut.perServing.kcal} kcal</span>
+                        <span>🥩 ${nut.perServing.p}g E</span>
+                        <span>🌾 ${nut.perServing.c}g KH</span>
+                        <span>🥑 ${nut.perServing.f}g F</span>
+                        <span style="color:#64748b; font-weight:500;">/ Portion (${nut.coverage}%)</span>
+                    </div>
+                `;
+            }
+
+            let kidHintHtml = '';
+            if (nut.hasData && (nut.perServing.salt > 1.6 || nut.perServing.sugar > 18)) {
+                const reasons = [];
+                if (nut.perServing.salt > 1.6) reasons.push(`höherer Salzgehalt (~${nut.perServing.salt}g/Port.)`);
+                if (nut.perServing.sugar > 18) reasons.push(`höherer Zuckergehalt (~${nut.perServing.sugar}g/Port.)`);
+                kidHintHtml = `<div class="kid-hint-banner">👶 Kleinkind-Tipp: ${reasons.join(' & ')} – ggf. Kinderportion vor dem Würzen abnehmen.</div>`;
+            }
 
             const card = document.createElement('div');
             card.className = `recipe-card ${rec.plannedThisWeek ? 'planned-week' : ''} ${allReady ? 'all-ready' : ''}`;
@@ -2921,10 +3706,12 @@
                 </div>
                 <div class="servings-bar">
                     <span>👥 Portionen:</span>
-                    <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', -1)">-</button>
+                    <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', -0.5)">-</button>
                     <span>${activeServings}</span>
-                    <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', 1)">+</button>
+                    <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', 0.5)">+</button>
                 </div>
+                ${macroHtml}
+                ${kidHintHtml}
                 ${ingHtml}
                 ${stepsHtml}
                 <button type="button" class="cook-done-btn" onclick="cookRecipe('${rec.id}')">🍳 Rezept gekocht – Zutaten vom Vorrat abziehen</button>
@@ -2950,12 +3737,12 @@
             if (!b.mhd) return -1;
             return new Date(a.mhd) - new Date(b.mhd);
         });
-        const topItems = sorted.slice(0, 8).map(i => `${i.amount} ${i.unit} ${i.name}`).join(', ');
-        const promptText = `Was kann ich Leckeres kochen mit diesen Vorräten, die bald verbraucht werden sollten: ${topItems}?`;
+        const topItems = sorted.slice(0, 10).map(i => `${i.amount} ${i.unit} ${i.name}`).join(', ');
+        const promptText = `Erstelle mir einen ausgewogenen, kleinkindgerechten Wochenplan (für 2 Erwachsene + 1 Kleinkind) und nutze dabei bevorzugt diese Vorräte, die bald verbraucht werden sollten: ${topItems}. Gib mir jedes Rezept im Format Titel, Zutatenliste mit Mengen und kurze Zubereitungsschritte aus.`;
 
         try {
             await navigator.clipboard.writeText(promptText);
-            alert(`🍳 Rezept-Anfrage in die Zwischenablage kopiert!\n\n"${promptText}"`);
+            alert(`🍳 Wochenplan- & Kochideen-Anfrage in die Zwischenablage kopiert!\n\nDu kannst sie jetzt direkt in Gemini einfügen und die Rezepte anschließend über „📋 Aus Zwischenablage“ speichern.`);
         } catch (e) {
             alert(`🍳 Vorräte zum Verkochen:\n\n${topItems}`);
         }
@@ -3032,7 +3819,7 @@
             alert('Keine Daten zum Exportieren vorhanden.');
             return;
         }
-        const headers = ['Artikel', 'Menge', 'Einheit', 'Kategorie', 'Lagerort', 'MHD', 'Mindestbestand', 'Angebrochen'];
+        const headers = ['Artikel', 'Menge', 'Einheit', 'Kategorie', 'Lagerort', 'MHD', 'Mindestbestand', 'Angebrochen', 'kcal_100g'];
         const rows = inventory.map(i => [
             `"${(i.name || '').replace(/"/g, '""')}"`,
             i.amount,
@@ -3041,7 +3828,8 @@
             `"${i.location || 'Vorratsschrank'}"`,
             `"${i.mhd || ''}"`,
             i.minAmount || '',
-            i.isOpened ? 'Ja' : 'Nein'
+            i.isOpened ? 'Ja' : 'Nein',
+            i.nutrition && i.nutrition.kcal ? i.nutrition.kcal : ''
         ].join(';'));
 
         const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\n');
@@ -3138,7 +3926,6 @@
         await deleteDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "einkaufsliste", id));
 
         if (moveToPantry) {
-            // Prüfen, ob ein gleichnamiger Artikel im Vorrat liegt, um Einheit/Lagerort/Mindestbestand zu übernehmen
             const knownItem = inventory.find(i => i.name.trim().toLowerCase() === item.name.trim().toLowerCase());
 
             switchTab('VORRAT');
@@ -3156,11 +3943,13 @@
                 document.getElementById('location').value = knownItem.location || 'Vorratsschrank';
                 document.getElementById('unit').value = knownItem.unit || 'Stk.';
                 if (knownItem.minAmount) document.getElementById('minAmount').value = knownItem.minAmount;
+                fillNutritionFields(knownItem.nutrition || lookupNutritionPer100g(item.name));
             } else {
                 document.getElementById('category').value = item.category || 'Sonstiges';
                 document.getElementById('location').value = item.location || 'Vorratsschrank';
                 document.getElementById('unit').value = item.unit || 'Stk.';
                 suggestStorageAndCategory(item.name, '', 'category', 'location', true);
+                fillNutritionFields(lookupNutritionPer100g(item.name));
             }
 
             showFeedback(`🛍️ "${item.name}" eingekauft! Jetzt nur noch Menge/MHD prüfen und speichern.`);
@@ -3196,7 +3985,6 @@
             return;
         }
 
-        // 1. Offene Artikel nach Supermarkt-Abteilungen sortiert
         supermarketOrder.forEach(catKey => {
             const groupItems = shoppingItems.filter(i => (i.category || 'Sonstiges') === catKey && !i.inCart);
             if (groupItems.length === 0) return;
@@ -3224,7 +4012,6 @@
             });
         });
 
-        // 2. Bereits im Einkaufswagen abgehakte Artikel gesammelt unten
         if (inCartItems.length > 0) {
             const cartHeader = document.createElement('div');
             cartHeader.className = 'dept-header';
