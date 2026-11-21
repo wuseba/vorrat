@@ -8,6 +8,7 @@
     <meta name="theme-color" content="#c2410c">
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
             --primary: #c2410c;
@@ -304,12 +305,27 @@
         .btn-row {
             grid-column: span 2;
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
             margin-top: 4px;
         }
 
+        .btn-row button {
+            flex: 1;
+            min-width: 120px;
+        }
+
         button.add-btn {
             background-color: var(--primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        button.next-btn {
+            background-color: var(--success);
             color: white;
             border: none;
             font-weight: bold;
@@ -323,6 +339,7 @@
             border: none;
             font-weight: bold;
             cursor: pointer;
+            flex: 0 0 auto;
             width: auto;
             padding: 11px 16px;
         }
@@ -828,7 +845,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .import-btn {
@@ -836,14 +853,27 @@
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 9px 10px;
-            font-size: 0.82rem;
+            padding: 9px 8px;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 5px;
+        }
+
+        .import-btn.pdf-btn {
+            background: #0369a1;
+            grid-column: span 2;
+        }
+
+        .paste-box-panel {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 12px;
         }
 
         .wake-lock-bar {
@@ -1028,6 +1058,7 @@
                         <option value="Gewürze">🧂 Gewürze & Soßen</option>
                         <option value="Backen">🧁 Backzutaten</option>
                         <option value="Getränke">🧃 Getränke</option>
+                        <option value="SuessigkeitenSnacks">🍿 Süßigkeiten & Snacks</option>
                         <option value="Sonstiges">📦 Sonstiges</option>
                     </select>
                 </div>
@@ -1093,7 +1124,8 @@
                 <div id="mhdHint"></div>
 
                 <div class="btn-row">
-                    <button type="submit" id="submitBtn" class="add-btn">+ In den Schrank legen</button>
+                    <button type="submit" id="submitBtn" class="add-btn">+ In den Schrank</button>
+                    <button type="button" id="saveAndNextItemBtn" class="next-btn">+ Speichern & nächster</button>
                     <button type="button" id="cancelEditBtn" class="cancel-btn">Schließen</button>
                 </div>
             </form>
@@ -1124,6 +1156,7 @@
                 <option value="Gewürze">🧂 Gewürze</option>
                 <option value="Backen">🧁 Backzutaten</option>
                 <option value="Getränke">🧃 Getränke</option>
+                <option value="SuessigkeitenSnacks">🍿 Süßigkeiten & Snacks</option>
                 <option value="Sonstiges">📦 Sonstiges</option>
             </select>
             <select id="filterLocation">
@@ -1157,6 +1190,7 @@
                     <option value="Gewürze">🧂 Gewürze & Soßen</option>
                     <option value="Backen">🧁 Backzutaten</option>
                     <option value="Getränke">🧃 Getränke</option>
+                    <option value="SuessigkeitenSnacks">🍿 Süßigkeiten & Snacks</option>
                     <option value="Sonstiges" selected>📦 Sonstiges</option>
                 </select>
                 <input type="text" id="shopNote" placeholder="Menge / Notiz">
@@ -1173,7 +1207,7 @@
     <div id="viewRezepte" class="hidden">
         <div id="weekPlanContainer"></div>
 
-        <!-- AUSGEWOGENER WOCHENPLAN-GENERATOR (MIT KOMBINIERBAREN SCHWERPUNKTEN) -->
+        <!-- AUSGEWOGENER WOCHENPLAN-GENERATOR -->
         <button type="button" id="togglePlannerBtn" class="toggle-form-btn" style="background:#1d4ed8; margin-bottom:10px;">✨ Ausgewogenen Wochenplan vorschlagen</button>
 
         <div class="planner-box hidden" id="plannerBox">
@@ -1230,10 +1264,22 @@
             </div>
 
             <div class="import-bar">
-                <button type="button" id="pasteRecipeBtn" class="import-btn">📋 Aus Zwischenablage</button>
-                <button type="button" id="ocrPhotoBtn" class="import-btn">📷 Rezept abfotografieren</button>
+                <button type="button" id="importPdfImgBtn" class="import-btn pdf-btn">📄 PDF oder 🖼️ Screenshot importieren</button>
+                <button type="button" id="ocrPhotoBtn" class="import-btn">📷 Abfotografieren</button>
+                <button type="button" id="pasteRecipeBtn" class="import-btn">📋 Text einfügen</button>
+                <input type="file" id="pdfImgFileInput" accept="application/pdf,image/*" class="hidden">
                 <input type="file" id="ocrFileInput" accept="image/*" capture="environment" class="hidden">
             </div>
+
+            <div id="pasteBoxPanel" class="paste-box-panel hidden">
+                <div class="field-label" style="margin-bottom:5px;">Rezept aus Gemini oder Webseite hier einfügen:</div>
+                <textarea id="rawRecipePasteInput" rows="5" placeholder="Einfach den kompletten Rezepttext aus Gemini hier einfügen und auf „Übernehmen“ tippen..."></textarea>
+                <div style="display:flex; gap:8px; margin-top:6px;">
+                    <button type="button" id="applyPastedTextBtn" class="add-btn" style="padding:8px; font-size:0.85rem;">✨ Text auswerten & übernehmen</button>
+                    <button type="button" id="closePasteBoxBtn" class="cancel-btn" style="padding:8px 12px; font-size:0.85rem;">Abbrechen</button>
+                </div>
+            </div>
+
             <div id="ocrFeedback"></div>
 
             <form id="recipeForm">
@@ -1245,20 +1291,28 @@
                     </div>
                 </div>
 
-                <div class="field-label" style="margin-bottom:5px;">Kategorie / Tags (optional):</div>
+                <div class="field-label" style="margin-bottom:5px;">Kategorie / Tags (werden beim Einfügen automatisch erkannt):</div>
                 <div id="recipeTagSelector" class="tag-selector">
                     <button type="button" class="tag-toggle" data-tag="Kindgerecht">👶 Kindgerecht</button>
                     <button type="button" class="tag-toggle" data-tag="Schnell">⚡ Schnell</button>
                     <button type="button" class="tag-toggle" data-tag="Vegetarisch">🥦 Vegetarisch</button>
                     <button type="button" class="tag-toggle" data-tag="Grillen">🔥 Grillen / BBQ</button>
                     <button type="button" class="tag-toggle" data-tag="Einfrierbar">🧊 Einfrierbar</button>
+                    <button type="button" class="tag-toggle" data-tag="Proteinreich">💪 Proteinreich</button>
+                    <button type="button" class="tag-toggle" data-tag="Low-Carb">🌾 Low-Carb</button>
+                    <button type="button" class="tag-toggle" data-tag="Leicht">🥗 Leicht</button>
+                    <button type="button" class="tag-toggle" data-tag="One-Pot">🍲 One-Pot / Ofen</button>
+                    <button type="button" class="tag-toggle" data-tag="Backen">🧁 Backen</button>
                 </div>
 
                 <div class="field-label" style="margin-bottom:6px;">Zutaten (für Vorrats-Check, Nährwerte & Abzug):</div>
                 <div id="ingredientRows"></div>
                 <button type="button" id="addIngRowBtn" class="chip-btn" style="margin: 6px 0 12px 0; background:#e5e7eb;">+ Weitere Zutat</button>
                 <textarea id="recNotes" rows="3" placeholder="Zubereitungsschritte (jede Zeile beim Kochen abhakbar)" style="margin-bottom:10px;"></textarea>
-                <button type="submit" id="saveRecipeBtn" class="add-btn">💾 Rezept speichern</button>
+                <div style="display:flex; gap:8px;">
+                    <button type="submit" id="saveRecipeBtn" class="add-btn" style="flex:1;">💾 Rezept speichern</button>
+                    <button type="button" id="saveAndNextRecipeBtn" class="next-btn" style="flex:1;">💾 Speichern & nächstes</button>
+                </div>
             </form>
         </div>
 
@@ -1282,6 +1336,11 @@
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Vegetarisch">🥦 Vegetarisch</button>
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Grillen">🔥 Grillen</button>
             <button type="button" class="chip-btn rec-tag-filter" data-tag="Einfrierbar">🧊 Einfrierbar</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Proteinreich">💪 Proteinreich</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Low-Carb">🌾 Low-Carb</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Leicht">🥗 Leicht</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="One-Pot">🍲 One-Pot</button>
+            <button type="button" class="chip-btn rec-tag-filter" data-tag="Backen">🧁 Backen</button>
         </div>
 
         <div style="margin-bottom:12px;">
@@ -1317,6 +1376,10 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyA9buBCLmg_S9pypxnyoHu5NaYPhkJzLIo",
         authDomain: "vorratsschrank-d23ea.firebaseapp.com",
@@ -1349,9 +1412,8 @@
     let currentProposedPlan = [];
     let wakeLockSentinel = null;
 
-    // --- ERWEITERTE BASIS-NÄHRWERTTABELLE (~120 ALLTAGSZUTATEN PRO 100G / 100ML + TYPISCHES STÜCKGEWICHT) ---
+    // --- BASIS-NÄHRWERTTABELLE PRO 100G / 100ML + TYPISCHES STÜCKGEWICHT ---
     const BASE_NUTRITION_DB = [
-        // Milch, Pflanzendrinks & Milchprodukte
         { keys: ['kokosmilch', 'kokoscreme'], kcal: 195, p: 2.0, c: 3.0, f: 19.0, sugar: 2.5, salt: 0.05, pieceG: 400 },
         { keys: ['hafermilch', 'haferdrink'], kcal: 46, p: 0.8, c: 7.0, f: 1.5, sugar: 4.0, salt: 0.1, pieceG: 1000 },
         { keys: ['sojamilch', 'sojadrink'], kcal: 39, p: 3.3, c: 1.5, f: 1.8, sugar: 1.0, salt: 0.1, pieceG: 1000 },
@@ -1360,7 +1422,7 @@
         { keys: ['vollmilch', 'kuhmilch', 'frischmilch', 'h-milch', 'milch'], kcal: 64, p: 3.3, c: 4.8, f: 3.5, sugar: 4.8, salt: 0.12, pieceG: 1000 },
         { keys: ['buttermilch'], kcal: 38, p: 3.5, c: 4.0, f: 0.6, sugar: 4.0, salt: 0.13, pieceG: 500 },
         { keys: ['kondensmilch'], kcal: 135, p: 7.0, c: 10.0, f: 7.5, sugar: 10.0, salt: 0.25, pieceG: 340 },
-        { keys: ['schlagsahne', 'kochsahe', 'sahne'], kcal: 292, p: 2.4, c: 3.2, f: 30.0, sugar: 3.2, salt: 0.08, pieceG: 200 },
+        { keys: ['schlagsahne', 'kochsahne', 'sahne'], kcal: 292, p: 2.4, c: 3.2, f: 30.0, sugar: 3.2, salt: 0.08, pieceG: 200 },
         { keys: ['saure sahne', 'schmand', 'crème fraîche', 'creme fraiche'], kcal: 210, p: 2.8, c: 3.5, f: 20.0, sugar: 3.5, salt: 0.1, pieceG: 200 },
         { keys: ['frischkäse'], kcal: 235, p: 6.0, c: 3.5, f: 22.0, sugar: 3.5, salt: 0.75, pieceG: 200 },
         { keys: ['quark', 'magerquark', 'speisequark'], kcal: 68, p: 12.2, c: 4.1, f: 0.3, sugar: 4.1, salt: 0.1, pieceG: 250 },
@@ -1374,8 +1436,6 @@
         { keys: ['gouda', 'emmentaler', 'cheddar', 'käse', 'reibekäse'], kcal: 356, p: 25.0, c: 0.1, f: 28.0, sugar: 0.1, salt: 1.8, pieceG: 200 },
         { keys: ['feta', 'hirtenkäse', 'schafskäse'], kcal: 264, p: 14.0, c: 4.0, f: 21.0, sugar: 4.0, salt: 2.3, pieceG: 200 },
         { keys: ['halloumi', 'grillkäse'], kcal: 315, p: 21.0, c: 2.0, f: 25.0, sugar: 2.0, salt: 2.5, pieceG: 200 },
-
-        // Eier, Fleisch, Fisch & Pflanzliche Proteine
         { keys: ['ei', 'eier', 'eigelb', 'eiweiß'], kcal: 155, p: 12.6, c: 1.1, f: 10.6, sugar: 1.1, salt: 0.35, pieceG: 60 },
         { keys: ['rinderhack', 'hackfleisch', 'gemischtes hack', 'schweinehack'], kcal: 220, p: 19.0, c: 0.0, f: 16.0, sugar: 0.0, salt: 0.2, pieceG: 500 },
         { keys: ['hähnchen', 'hühnchen', 'putenbrust', 'pute', 'geflügel'], kcal: 115, p: 23.0, c: 0.0, f: 2.0, sugar: 0.0, salt: 0.15, pieceG: 300 },
@@ -1389,8 +1449,6 @@
         { keys: ['garnelen', 'scampi', 'krabben'], kcal: 85, p: 18.5, c: 0.5, f: 1.0, sugar: 0.0, salt: 0.9, pieceG: 200 },
         { keys: ['tofu', 'räuchertofu'], kcal: 135, p: 14.0, c: 1.5, f: 8.0, sugar: 0.5, salt: 0.1, pieceG: 200 },
         { keys: ['hummus'], kcal: 240, p: 7.5, c: 15.0, f: 16.0, sugar: 1.0, salt: 1.1, pieceG: 200 },
-
-        // Nudeln, Reis, Kartoffeln & Getreide
         { keys: ['nudel', 'pasta', 'spaghetti', 'penne', 'fusilli', 'tagliatelle', 'lasagne', 'makkaroni'], kcal: 355, p: 12.0, c: 71.0, f: 1.5, sugar: 3.0, salt: 0.02, pieceG: 500 },
         { keys: ['tortellini', 'ravioli'], kcal: 280, p: 10.5, c: 43.0, f: 6.5, sugar: 2.5, salt: 1.1, pieceG: 250 },
         { keys: ['gnocchi'], kcal: 165, p: 3.8, c: 35.0, f: 0.6, sugar: 1.0, salt: 1.1, pieceG: 500 },
@@ -1406,8 +1464,6 @@
         { keys: ['paniermehl', 'semmelbrösel'], kcal: 360, p: 11.0, c: 73.0, f: 2.0, sugar: 4.0, salt: 1.3, pieceG: 250 },
         { keys: ['blätterteig', 'pizzateig', 'flammkuchenteig'], kcal: 370, p: 6.0, c: 38.0, f: 21.0, sugar: 2.0, salt: 1.3, pieceG: 275 },
         { keys: ['wrap', 'tortilla'], kcal: 300, p: 8.0, c: 50.0, f: 7.0, sugar: 3.0, salt: 1.4, pieceG: 60 },
-
-        // Hülsenfrüchte & Konserven
         { keys: ['linsen', 'rote linsen', 'berg-linsen', 'tellerlinsen'], kcal: 330, p: 24.0, c: 52.0, f: 1.5, sugar: 2.0, salt: 0.03, pieceG: 500 },
         { keys: ['kichererbsen', 'kidneybohnen', 'weiße bohnen', 'schwarze bohnen'], kcal: 120, p: 7.5, c: 16.0, f: 2.0, sugar: 1.0, salt: 0.6, pieceG: 240 },
         { keys: ['mais', 'maiskörner', 'zuckermais'], kcal: 86, p: 3.2, c: 19.0, f: 1.2, sugar: 3.2, salt: 0.4, pieceG: 285 },
@@ -1415,8 +1471,6 @@
         { keys: ['passierte tomaten', 'gehackte tomaten', 'dosentomaten', 'geschälte tomaten'], kcal: 26, p: 1.3, c: 4.0, f: 0.2, sugar: 3.8, salt: 0.35, pieceG: 400 },
         { keys: ['tomatenmark'], kcal: 82, p: 4.3, c: 14.0, f: 0.5, sugar: 12.0, salt: 1.2, pieceG: 200 },
         { keys: ['apfelmus', 'apfelmark'], kcal: 55, p: 0.3, c: 13.0, f: 0.2, sugar: 11.5, salt: 0.01, pieceG: 350 },
-
-        // Gemüse & Obst
         { keys: ['tomate', 'cherrytomate', 'rispentomate'], kcal: 18, p: 0.9, c: 3.5, f: 0.2, sugar: 2.6, salt: 0.01, pieceG: 110 },
         { keys: ['zwiebel', 'schalotte', 'rote zwiebel'], kcal: 40, p: 1.1, c: 9.0, f: 0.1, sugar: 4.2, salt: 0.01, pieceG: 80 },
         { keys: ['frühlingszwiebel', 'lauchzwiebel', 'lauch', 'porree'], kcal: 31, p: 1.5, c: 5.5, f: 0.3, sugar: 2.5, salt: 0.02, pieceG: 150 },
@@ -1441,8 +1495,6 @@
         { keys: ['birne'], kcal: 57, p: 0.4, c: 15.2, f: 0.1, sugar: 9.8, salt: 0.01, pieceG: 160 },
         { keys: ['erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'beeren'], kcal: 45, p: 0.8, c: 10.0, f: 0.4, sugar: 7.5, salt: 0.01, pieceG: 250 },
         { keys: ['zitrone', 'limette', 'orange'], kcal: 42, p: 0.8, c: 9.5, f: 0.2, sugar: 7.5, salt: 0.01, pieceG: 100 },
-
-        // Öle, Nüsse, Backen & Würzmittel
         { keys: ['olivenöl', 'rapsöl', 'sonnenblumenöl', 'kokosöl', 'sesamöl', 'öl'], kcal: 884, p: 0.0, c: 0.0, f: 100.0, sugar: 0.0, salt: 0.0, pieceG: 500 },
         { keys: ['mandel', 'walnuss', 'haselnuss', 'cashew', 'erdnuss', 'pinienkerne', 'nüsse'], kcal: 610, p: 18.0, c: 12.0, f: 54.0, sugar: 4.5, salt: 0.02, pieceG: 100 },
         { keys: ['erdnussbutter', 'mandelmus', 'tahini', 'sesammus'], kcal: 600, p: 22.0, c: 14.0, f: 50.0, sugar: 6.0, salt: 0.5, pieceG: 250 },
@@ -1450,6 +1502,8 @@
         { keys: ['honig', 'ahornsirup', 'agavendicksaft'], kcal: 304, p: 0.3, c: 82.0, f: 0.0, sugar: 82.0, salt: 0.01, pieceG: 250 },
         { keys: ['schokolade', 'kuvertüre', 'schokodrops'], kcal: 540, p: 6.0, c: 55.0, f: 32.0, sugar: 48.0, salt: 0.1, pieceG: 100 },
         { keys: ['backkakao', 'kakaopulver'], kcal: 350, p: 20.0, c: 15.0, f: 21.0, sugar: 1.0, salt: 0.05, pieceG: 125 },
+        { keys: ['chips', 'kartoffelchips', 'flips', 'salzstangen', 'cracker', 'popcorn'], kcal: 510, p: 6.0, c: 53.0, f: 30.0, sugar: 2.0, salt: 1.6, pieceG: 150 },
+        { keys: ['kekse', 'keks', 'waffeln', 'gummibärchen', 'fruchtgummi', 'bonbon'], kcal: 420, p: 5.0, c: 72.0, f: 12.0, sugar: 45.0, salt: 0.3, pieceG: 150 },
         { keys: ['salz', 'meersalz', 'kräutersalz'], kcal: 0, p: 0.0, c: 0.0, f: 0.0, sugar: 0.0, salt: 100.0, pieceG: 500 },
         { keys: ['sojasoße', 'sojasauce'], kcal: 53, p: 8.0, c: 4.9, f: 0.1, sugar: 0.4, salt: 14.0, pieceG: 150 },
         { keys: ['pesto'], kcal: 450, p: 5.0, c: 6.0, f: 45.0, sugar: 2.0, salt: 2.8, pieceG: 190 },
@@ -1489,6 +1543,7 @@
         'Gewürze': '🧂 Gewürze & Soßen',
         'Backen': '🧁 Backzutaten',
         'Getränke': '🧃 Getränke',
+        'SuessigkeitenSnacks': '🍿 Süßigkeiten & Snacks',
         'Sonstiges': '📦 Sonstiges'
     };
 
@@ -1497,11 +1552,16 @@
         'Schnell': '⚡ Schnell',
         'Vegetarisch': '🥦 Vegetarisch',
         'Grillen': '🔥 Grillen / BBQ',
-        'Einfrierbar': '🧊 Einfrierbar'
+        'Einfrierbar': '🧊 Einfrierbar',
+        'Proteinreich': '💪 Proteinreich',
+        'Low-Carb': '🌾 Low-Carb',
+        'Leicht': '🥗 Leicht',
+        'One-Pot': '🍲 One-Pot / Ofen',
+        'Backen': '🧁 Backen'
     };
 
     const supermarketOrder = [
-        'ObstGemuese', 'FleischFisch', 'Molkerei', 'Konserven', 'Trockenwaren', 'Gewürze', 'Backen', 'Getränke', 'Sonstiges'
+        'ObstGemuese', 'FleischFisch', 'Molkerei', 'Konserven', 'Trockenwaren', 'Gewürze', 'Backen', 'Getränke', 'SuessigkeitenSnacks', 'Sonstiges'
     ];
 
     // --- 3-STUFIGE NÄHRWERT-AUTOMATIK ---
@@ -1513,21 +1573,18 @@
         const lower = (ingredientName || '').toLowerCase().trim();
         if (!lower) return null;
 
-        // Stufe 1: Exakte Produkt-Nährwerte aus eurem aktuellen Vorrat
         const pantryMatches = findMatchingPantryItems(lower);
         const withNutrition = pantryMatches.find(m => m.nutrition && typeof m.nutrition.kcal === 'number');
         if (withNutrition) {
             return { ...withNutrition.nutrition, pieceG: 100 };
         }
 
-        // Stufe 2: Erweiterte Basis-Datenbank (~120 Standardzutaten)
         for (const entry of BASE_NUTRITION_DB) {
             if (entry.keys.some(k => lower.includes(k))) {
                 return entry;
             }
         }
 
-        // Stufe 3: Gelerntes Firebase-Nährwert-Wörterbuch aus früheren Rezepten
         const safeKey = normalizeNutKey(lower);
         if (learnedNutritionDict[safeKey]) {
             return { ...learnedNutritionDict[safeKey], pieceG: 100 };
@@ -1649,26 +1706,39 @@
     function analyzeRecipeCharacteristics(rec) {
         const ings = rec.ingredients || [];
         const tags = rec.tags || [];
-        const text = `${rec.title || ''} ${ings.map(i => i.name).join(' ')} ${rec.notes || ''}`.toLowerCase();
+        const ingNamesLower = ings.map(i => (i.name || '').toLowerCase()).join(' ');
+        const text = `${rec.title || ''} ${ingNamesLower} ${rec.notes || ''}`.toLowerCase();
         const nut = calculateRecipeNutrition(rec, rec.servings || 4);
 
-        const meatFishKeywords = ['fleisch', 'hack', 'hähnchen', 'hühnchen', 'pute', 'schnitzel', 'steak', 'wurst', 'schinken', 'speck', 'bacon', 'fisch', 'lachs', 'thunfisch', 'garnelen', 'salami'];
-        const nonKidKeywords = ['chili', 'jalapeño', 'tabasco', 'cayenne', 'alkohol', 'wein', 'bier', 'rum', 'espresso', 'kaffee', 'roh'];
+        const meatFishRegex = /\b(fleisch|hackfleisch|rinderhack|schweinehack|gemischtes hack|hähnchen|hühnchen|pute|putenbrust|schnitzel|steak|bratwurst|würstchen|schinken|speck|bacon|fisch|lachs|thunfisch|garnelen|salami|kotelett|gulasch)\b/;
+        const nonKidKeywords = ['chili', 'jalapeño', 'tabasco', 'cayenne', 'alkohol', 'rotwein', 'weißwein', 'bier', 'rum', 'espresso', 'kaffee'];
+        const bakingKeywords = ['backpulver', 'trockenhefe', 'frische hefe', 'hefe', 'kuvertüre', 'kuchen', 'muffin', 'muffins', 'plätzchen', 'kekse', 'torte', 'waffeln', 'pfannkuchen', 'bananenbrot', 'hefeteig', 'mürbeteig', 'rührteig', 'biskuit', 'streusel', 'vanillezucker', 'puderzucker'];
+        const grillKeywords = ['grill', 'bbq', 'barbecue', 'rost', 'direkte hitze', 'indirekte hitze', 'dutch oven', 'räuchern', 'smoker'];
+        const onePotKeywords = ['one-pot', 'one pot', 'eintopf', 'pfannengericht', 'blech', 'auflauf', 'alles in einen topf', 'in einer pfanne'];
 
-        const isVeggie = tags.includes('Vegetarisch') || !meatFishKeywords.some(w => text.includes(w));
+        const timeMatch = text.match(/(\d+)\s*(?:min|minuten)/);
+        const mentionedMinutes = timeMatch ? parseInt(timeMatch[1], 10) : null;
+
+        const isBaking = tags.includes('Backen') || bakingKeywords.some(w => text.includes(w));
+        const isVeggie = tags.includes('Vegetarisch') || !meatFishRegex.test(ingNamesLower);
         const isKidFriendly = tags.includes('Kindgerecht') || (!nonKidKeywords.some(w => text.includes(w)) && nut.perServing.salt <= 1.8);
-        const isQuick = tags.includes('Schnell') || ings.length <= 6;
-        const isMealPrep = tags.includes('Einfrierbar') || ['eintopf', 'suppe', 'auflauf', 'lasagne', 'bolognese', 'curry', 'gulasch', 'chili'].some(w => text.includes(w));
-        const isHighProtein = nut.perServing.p >= 22;
-        const isLight = nut.hasData && nut.perServing.kcal > 0 && nut.perServing.kcal <= 520;
-        const isLowCarb = nut.hasData && nut.perServing.c <= 25;
+        const isQuick = tags.includes('Schnell') || (mentionedMinutes !== null && mentionedMinutes <= 25) || (ings.length > 0 && ings.length <= 6 && !isBaking);
+        const isGrill = tags.includes('Grillen') || grillKeywords.some(w => text.includes(w));
+        const isMealPrep = tags.includes('Einfrierbar') || ['einfrieren', 'eintopf', 'suppe', 'auflauf', 'lasagne', 'bolognese', 'curry', 'gulasch', 'chili'].some(w => text.includes(w));
+        const isOnePot = tags.includes('One-Pot') || onePotKeywords.some(w => text.includes(w));
+        const isHighProtein = tags.includes('Proteinreich') || nut.perServing.p >= 22;
+        const isLight = tags.includes('Leicht') || (nut.hasData && nut.perServing.kcal > 0 && nut.perServing.kcal <= 520 && !isBaking);
+        const isLowCarb = tags.includes('Low-Carb') || (nut.hasData && nut.perServing.c <= 25 && !isBaking);
         const isBudget = ['kartoffel', 'linsen', 'haferflocken', 'ei', 'nudeln', 'reis', 'bohn', 'möhre', 'karotte'].some(w => text.includes(w)) && !['lachs', 'steak', 'filet', 'garnelen', 'pinienkerne'].some(w => text.includes(w));
 
         return {
+            isBaking,
             isVeggie,
             isKidFriendly,
             isQuick,
+            isGrill,
             isMealPrep,
+            isOnePot,
             isHighProtein,
             isLight,
             isLowCarb,
@@ -1894,22 +1964,7 @@
         };
     }
 
-    toggleFormBtn.addEventListener('click', () => {
-        if (formCard.classList.contains('hidden')) {
-            userTouchedMhd = false;
-            mhdHint.style.display = 'none';
-            mhdParsedPreview.textContent = '';
-            mhdIsoValue.value = '';
-            mhdCalendar.value = '';
-            clearNutritionFields();
-            formCard.classList.remove('hidden');
-            toggleFormBtn.classList.add('hidden');
-            document.getElementById('name').focus();
-        }
-    });
-
-    function closeFormCard() {
-        stopScanner();
+    function resetItemFormFieldsOnly() {
         form.reset();
         userTouchedMhd = false;
         mhdHint.style.display = 'none';
@@ -1921,7 +1976,23 @@
         document.getElementById('lastScannedBarcode').value = '';
         document.getElementById('amount').value = 1;
         document.getElementById('formTitle').textContent = 'Neuer Artikel';
-        document.getElementById('submitBtn').textContent = '+ In den Schrank legen';
+        document.getElementById('submitBtn').textContent = '+ In den Schrank';
+        document.getElementById('saveAndNextItemBtn').classList.remove('hidden');
+    }
+
+    toggleFormBtn.addEventListener('click', () => {
+        if (formCard.classList.contains('hidden')) {
+            resetItemFormFieldsOnly();
+            document.getElementById('scan-feedback').style.display = 'none';
+            formCard.classList.remove('hidden');
+            toggleFormBtn.classList.add('hidden');
+            document.getElementById('name').focus();
+        }
+    });
+
+    function closeFormCard() {
+        stopScanner();
+        resetItemFormFieldsOnly();
         document.getElementById('scan-feedback').style.display = 'none';
         formCard.classList.add('hidden');
         toggleFormBtn.classList.remove('hidden');
@@ -1978,7 +2049,7 @@
     chipExpiring.addEventListener('click', () => setQuickFilter('EXPIRING'));
     chipLow.addEventListener('click', () => setQuickFilter('LOW'));
 
-    // Rezept-Chips (Status & Tags)
+    // Rezept-Chips
     const recChipAll = document.getElementById('recChipAll');
     const recChipReady = document.getElementById('recChipReady');
     const recChipWeek = document.getElementById('recChipWeek');
@@ -2015,15 +2086,16 @@
         });
     });
 
-    // --- KATEGORIE-, LAGERORT- & MHD-ERKENNUNG ---
+    // --- KATEGORIE-, LAGERORT- & MHD-ERKENNUNG (FIX FÜR GEFRIERTRUHE, GEHACKTE NÜSSE & SNACKS) ---
     function detectCategoryAndLocation(productName, barcodeTags = '') {
-        const nameLower = (productName || '').toLowerCase();
+        const nameLower = (productName || '').toLowerCase().trim();
         const cleanTags = (barcodeTags || '')
             .toLowerCase()
             .replace(/plant-based-foods-and-beverages/g, '')
             .replace(/beverages-and-beverages-preparations/g, '');
         const text = `${nameLower} ${cleanTags}`;
 
+        // 1. Pflanzliche Milch & Kokosmilch
         if (nameLower.includes('kokosmilch') || nameLower.includes('kokoscreme')) {
             return { category: 'Konserven', location: 'Vorratsschrank', mhdDays: null };
         }
@@ -2032,33 +2104,27 @@
             return { category: 'Getränke', location: 'Vorratsschrank', mhdDays: null };
         }
 
-        const meatFishWords = [
-            'fleisch', 'hack', 'hackfleisch', 'rinderhack', 'schweinehack', 'hähnchen', 'hühnchen', 'pute', 'putenbrust',
-            'schnitzel', 'steak', 'filet', 'gulasch', 'bratwurst', 'wurst', 'aufschnitt', 'schinken', 'salami', 'speck', 'bacon',
-            'fisch', 'lachs', 'forelle', 'kabeljau', 'seelachs', 'garnelen', 'scampi', 'thunfisch', 'en:meats', 'en:fishes', 'en:seafood'
-        ];
+        // 2. Exakte Tiefkühl-Erkennung (verhindert Fehlalarme bei Keksen, Nüssen oder unklaren Tags!)
+        const isFrozenName = /\b(tk|tiefkühl|tiefgekühlt|gefroren|speiseeis|fischstäbchen|pommes|kroketten|blätterteig-tk)\b/.test(nameLower) || nameLower.startsWith('tk ') || nameLower.startsWith('tk-');
+        const isFrozenTag = cleanTags.includes('en:frozen-foods') || cleanTags.includes('en:ice-creams');
 
-        const freezerWords = ['tk', 'tiefkühl', 'eis', 'pommes', 'kroketten', 'fischstäbchen', 'gefroren', 'en:frozen', 'ice-cream', 'pizza'];
-        if (freezerWords.some(w => text.includes(w))) {
+        // 3. Exakte Fleisch- & Fisch-Wortgrenzen (verhindert "gehackte Nüsse" -> Fleisch!)
+        const meatFishRegex = /\b(fleisch|hackfleisch|rinderhack|schweinehack|gemischtes hack|hähnchen|hühnchen|pute|putenbrust|schnitzel|steak|rinderfilet|schweinefilet|hähnchenfilet|lachsfilet|fischfilet|gulasch|bratwurst|wurst|aufschnitt|schinken|salami|speck|bacon|fisch|lachs|forelle|kabeljau|seelachs|garnelen|scampi|thunfisch)\b/;
+        const isMeatFish = meatFishRegex.test(nameLower) || cleanTags.includes('en:meats') || cleanTags.includes('en:fishes') || cleanTags.includes('en:seafood');
+
+        if (isFrozenName || isFrozenTag) {
             return {
-                category: meatFishWords.some(w => text.includes(w)) ? 'FleischFisch' : 'Sonstiges',
+                category: isMeatFish ? 'FleischFisch' : 'Sonstiges',
                 location: 'Gefriertruhe',
                 mhdDays: 90,
                 mhdReason: 'Tiefkühlware'
             };
         }
 
-        if (meatFishWords.some(w => text.includes(w))) {
-            return { category: 'FleischFisch', location: 'Kühlschrank', mhdDays: 2, mhdReason: 'frisches Fleisch/Fisch' };
-        }
-
-        const bakingWords = [
-            'back family', 'backzutat', 'backpulver', 'natron', 'vanillin', 'vanillezucker', 'vanilleextrakt', 'trockenhefe',
-            'haselnuss', 'haselnüsse', 'mandel', 'walnuss', 'cashew', 'pistazie', 'kokosraspel', 'rosinen', 'sultaninen',
-            'kuvertüre', 'schokodrops', 'backkakao', 'speisestärke', 'tortenguss', 'gelatine', 'marzipan', 'puderzucker', 'hefe',
-            'en:nuts', 'en:baking-ingredients', 'en:dried-fruits'
-        ];
-        if (bakingWords.some(w => text.includes(w))) {
+        // 4. Backzutaten (inkl. gemahlene/gehackte/gestiftelte Nüsse & Mandeln VOR Snacks und VOR Fleisch prüfen!)
+        const bakingRegex = /\b(back family|backzutat|backpulver|natron|vanillin|vanillezucker|vanilleextrakt|trockenhefe|hefe|kuvertüre|schokodrops|backkakao|speisestärke|tortenguss|gelatine|marzipan|puderzucker|kokosraspel|rosinen|sultaninen|pinienkerne|walnuss|walnüsse|haselnuss|haselnüsse|mandeln|mandelblättchen|mandelstifte|haselnusskrokant)\b/;
+        const isBakingNutPrep = /(gehackt|gemahlen|gestiftelt|blättchen|hobel|back)/.test(nameLower) && /(nuss|nüsse|mandel|pistazie|cashew)/.test(nameLower);
+        if (bakingRegex.test(nameLower) || isBakingNutPrep || cleanTags.includes('en:baking-ingredients')) {
             return {
                 category: 'Backen',
                 location: nameLower.includes('frische hefe') ? 'Kühlschrank' : 'Vorratsschrank',
@@ -2066,6 +2132,22 @@
             };
         }
 
+        // 5. Süßigkeiten & Snacks (Chips, Schokolade, Kekse, Knabbernüsse)
+        const snackRegex = /\b(chips|kartoffelchips|tortillachips|nachos|flips|erdnussflips|salzstangen|brezeln|cracker|popcorn|schokolade|schokoriegel|riegel|gummibärchen|fruchtgummi|lakritz|bonbon|bonbons|kekse|keks|butterkeks|waffeln|pralinen|studentenfutter|erdnüsse|cashews|cashewkerne|pistazien|macadamia|knabber|snack|snacks|reiswaffeln|maiswaffeln)\b/;
+        if (snackRegex.test(nameLower) || cleanTags.includes('en:snacks') || cleanTags.includes('en:sweet-snacks') || cleanTags.includes('en:salty-snacks') || cleanTags.includes('en:chocolates') || cleanTags.includes('en:biscuits')) {
+            return {
+                category: 'SuessigkeitenSnacks',
+                location: 'Vorratsschrank',
+                mhdDays: null
+            };
+        }
+
+        // 6. Frisches Fleisch & Fisch
+        if (isMeatFish) {
+            return { category: 'FleischFisch', location: 'Kühlschrank', mhdDays: 2, mhdReason: 'frisches Fleisch/Fisch' };
+        }
+
+        // 7. Obst & Gemüse
         const shortFridgeProduce = [
             'salat', 'feldsalat', 'rucola', 'eisberg', 'spinat', 'spargel',
             'pilz', 'champignon', 'pfifferling', 'erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'brombeer', 'johannisbeer', 'frühlingszwiebel'
@@ -2088,20 +2170,21 @@
         const isCannedOrJar = ['passiert', 'geschält', 'gehackt', 'dose', 'glas', 'konserve', 'mus', 'mark', 'pesto', 'soße', 'sauce', 'ketchup', 'en:canned', 'en:jars'].some(w => text.includes(w));
 
         if (!isCannedOrJar) {
-            if (shortFridgeProduce.some(w => text.includes(w))) {
+            if (shortFridgeProduce.some(w => nameLower.includes(w))) {
                 return { category: 'ObstGemuese', location: 'Kühlschrank', mhdDays: 3, mhdReason: 'empfindliches Frischprodukt' };
             }
-            if (longFridgeProduce.some(w => text.includes(w))) {
+            if (longFridgeProduce.some(w => nameLower.includes(w))) {
                 return { category: 'ObstGemuese', location: 'Kühlschrank', mhdDays: 7, mhdReason: 'Kühlschrank-Gemüse/-Obst' };
             }
-            if (cellarProduce.some(w => text.includes(w))) {
+            if (cellarProduce.some(w => nameLower.includes(w))) {
                 return { category: 'ObstGemuese', location: 'Keller', mhdDays: 21, mhdReason: 'Lagerobst/-gemüse' };
             }
-            if (roomProduce.some(w => text.includes(w))) {
+            if (roomProduce.some(w => nameLower.includes(w))) {
                 return { category: 'ObstGemuese', location: 'Obstschale / Küche', mhdDays: 5, mhdReason: 'Zimmertemperatur-Obst/-Gemüse' };
             }
         }
 
+        // 8. Molkereiprodukte
         const dairyWords = [
             'milch', 'kuhmilch', 'vollmilch', 'h-milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche',
             'mozzarella', 'parmesan', 'gouda', 'emmentaler', 'feta', 'mascarpone', 'ricotta', 'skyr', 'kefir', 'buttermilch',
@@ -2115,6 +2198,7 @@
             };
         }
 
+        // 9. Konserven & Gläser
         const cannedWords = [
             'passierte tomaten', 'gehackte tomaten', 'tomatenmark', 'maiskörner', 'kidneybohnen', 'kichererbsen',
             'erbsen', 'linsen', 'rotkohl im glas', 'apfelmus', 'marmelade', 'konfitüre', 'honig', 'nutella', 'aufstrich',
@@ -2125,6 +2209,7 @@
             return { category: 'Konserven', location: 'Vorratsschrank', mhdDays: null };
         }
 
+        // 10. Trockenwaren
         const dryWords = [
             'nudel', 'pasta', 'spaghetti', 'penne', 'fusilli', 'tagliatelle', 'lasagne', 'reis', 'basmati', 'risotto',
             'mehl', 'weizenmehl', 'dinkelmehl', 'zucker', 'haferflocken', 'müsli', 'cornflakes', 'grieß', 'paniermehl', 'semmelbrösel',
@@ -2134,6 +2219,7 @@
             return { category: 'Trockenwaren', location: 'Vorratsschrank', mhdDays: null };
         }
 
+        // 11. Gewürze & Soßen
         const spiceSauceWords = [
             'gewürz', 'salz', 'pfeffer', 'paprikapulver', 'curry', 'kurkuma', 'oregano', 'thymian', 'zimt', 'muskat',
             'öl', 'olivenöl', 'rapsöl', 'sonnenblumenöl', 'essig', 'balsamico', 'sojasoße', 'sojasauce',
@@ -2148,6 +2234,7 @@
             };
         }
 
+        // 12. Getränke
         const drinkWords = [
             'wasser', 'mineralwasser', 'sprudel', 'saft', 'apfelsaft', 'orangensaft', 'multivitamin', 'nektar', 'schorle',
             'cola', 'limonade', 'limo', 'eistee', 'energy', 'bier', 'radler', 'wein', 'sekt', 'prosecco',
@@ -2429,9 +2516,21 @@
         }
     }
 
-    // --- VORRATS-FORMULAR SPEICHERN ---
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // --- VORRATS-FORMULAR SPEICHERN (INKL. "SPEICHERN & NÄCHSTER") ---
+    async function saveInventoryItem(keepOpenForNext = false) {
+        const nameVal = document.getElementById('name').value.trim();
+        const amountVal = parseFloat(document.getElementById('amount').value);
+
+        if (!nameVal) {
+            alert('Bitte einen Artikelnamen eingeben.');
+            document.getElementById('name').focus();
+            return;
+        }
+        if (isNaN(amountVal) || amountVal <= 0) {
+            alert('Bitte eine gültige Menge größer als 0 eingeben.');
+            document.getElementById('amount').focus();
+            return;
+        }
 
         const rawMhd = mhdInput.value.trim();
         let parsedIsoMhd = mhdIsoValue.value || '';
@@ -2452,8 +2551,8 @@
         const nutritionObj = readNutritionFields();
 
         const itemData = {
-            name: document.getElementById('name').value.trim(),
-            amount: parseFloat(document.getElementById('amount').value),
+            name: nameVal,
+            amount: amountVal,
             unit: document.getElementById('unit').value,
             category: document.getElementById('category').value,
             location: document.getElementById('location').value,
@@ -2486,17 +2585,21 @@
             if (duplicate) {
                 const combinedQty = Math.round((duplicate.amount + itemData.amount) * 10) / 10;
                 if (confirm(`🔄 "${duplicate.name}" (${duplicate.location}) ist mit demselben MHD schon da (${duplicate.amount} ${duplicate.unit}).\n\nSoll ich die Menge einfach auf ${combinedQty} ${duplicate.unit} erhöhen?`)) {
-                    closeFormCard();
                     await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", duplicate.id), {
                         amount: combinedQty,
                         nutrition: nutritionObj || duplicate.nutrition || null
                     });
+                    if (keepOpenForNext) {
+                        resetItemFormFieldsOnly();
+                        showFeedback(`✅ "${itemData.name}" auf ${combinedQty} ${itemData.unit} erhöht – bereit für den nächsten Artikel!`);
+                        document.getElementById('name').focus();
+                    } else {
+                        closeFormCard();
+                    }
                     return;
                 }
             }
         }
-
-        closeFormCard();
 
         if (editId) {
             await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "vorrat", editId), itemData);
@@ -2505,6 +2608,23 @@
             itemData.openedAt = null;
             await addDoc(vorratRef, itemData);
         }
+
+        if (keepOpenForNext) {
+            resetItemFormFieldsOnly();
+            showFeedback(`✅ "${itemData.name}" eingeräumt – bereit für den nächsten Artikel!`);
+            document.getElementById('name').focus();
+        } else {
+            closeFormCard();
+        }
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await saveInventoryItem(false);
+    });
+
+    document.getElementById('saveAndNextItemBtn').addEventListener('click', async function() {
+        await saveInventoryItem(true);
     });
 
     window.toggleOpened = async function(id) {
@@ -2532,6 +2652,7 @@
         mhdHint.style.display = 'none';
         formCard.classList.remove('hidden');
         toggleFormBtn.classList.add('hidden');
+        document.getElementById('saveAndNextItemBtn').classList.add('hidden');
 
         document.getElementById('editId').value = item.id;
         document.getElementById('name').value = item.name;
@@ -2836,7 +2957,7 @@
         });
     }
 
-    // --- WOCHENPLAN-GENERATOR (MIT KOMBINIERBAREN SCHWERPUNKTEN) ---
+    // --- WOCHENPLAN-GENERATOR (SCHLIESST "BACKEN"-REZEPTE AUTOMATISCH AUS) ---
     const togglePlannerBtn = document.getElementById('togglePlannerBtn');
     const plannerBox = document.getElementById('plannerBox');
     const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
@@ -2862,6 +2983,10 @@
     function scoreRecipeForDay(rec, dayIndex, activeFocuses, alreadyChosenIds, chosenRecipes) {
         if (alreadyChosenIds.has(rec.id)) return -99999;
 
+        const info = analyzeRecipeCharacteristics(rec);
+        // Backwaren / Kuchen nicht als Hauptmahlzeit im Wochenplan vorschlagen
+        if (info.isBaking) return -99999;
+
         const targetServings = parseFloat(document.getElementById('planServings').value) || 2.5;
         const baseServings = rec.servings || 4;
         const factor = targetServings / baseServings;
@@ -2870,7 +2995,6 @@
             amount: ing.amount ? ing.amount * factor : null
         }));
 
-        const info = analyzeRecipeCharacteristics(rec);
         let score = 50;
 
         let readyCount = 0;
@@ -2939,10 +3063,11 @@
     }
 
     function generateBalancedWeekPlan() {
-        if (recipes.length === 0) {
+        const mealRecipes = recipes.filter(r => !analyzeRecipeCharacteristics(r).isBaking);
+        if (mealRecipes.length === 0) {
             document.getElementById('generatedPlanResult').innerHTML = `
                 <div class="empty-state" style="padding:16px; font-size:0.88rem;">
-                    Ihr habt noch keine Rezepte gespeichert. Speichert erst ein paar eurer Lieblingsgerichte – dann stellt euch der Generator daraus einen ausgewogenen Wochenplan zusammen!
+                    Ihr habt noch keine Hauptgerichte gespeichert (Rezepte mit dem Tag „🧁 Backen“ werden für den Wochenplan übersprungen).
                 </div>`;
             return;
         }
@@ -2969,10 +3094,6 @@
     }
 
     window.rerollSinglePlanDay = function(dayIdx) {
-        if (recipes.length <= currentProposedPlan.length) {
-            alert('Keine weiteren alternativen Rezepte in eurer Sammlung verfügbar.');
-            return;
-        }
         const activeFocuses = getActiveFocusModes();
         const usedIds = new Set(currentProposedPlan.map(r => r.id));
         const otherRecipes = currentProposedPlan.filter((_, idx) => idx !== dayIdx);
@@ -2980,11 +3101,14 @@
         const candidates = recipes
             .filter(r => !usedIds.has(r.id))
             .map(r => ({ rec: r, score: scoreRecipeForDay(r, dayIdx, activeFocuses, usedIds, otherRecipes) }))
+            .filter(c => c.score > -50000)
             .sort((a, b) => b.score - a.score);
 
         if (candidates.length > 0) {
             currentProposedPlan[dayIdx] = candidates[0].rec;
             renderProposedPlan();
+        } else {
+            alert('Keine weiteren alternativen Hauptgerichte in eurer Sammlung verfügbar.');
         }
     };
 
@@ -3053,11 +3177,13 @@
 
     document.getElementById('generatePlanBtn').addEventListener('click', generateBalancedWeekPlan);
 
-    // --- REZEPTE: TAGS, SMART-PARSER & ZUTATEN-EINHEITEN ---
+    // --- REZEPTE: 10 TAGS, AUTO-TAG-ERKENNUNG & GEMINI-PARSER ---
     const toggleRecipeFormBtn = document.getElementById('toggleRecipeFormBtn');
     const recipeFormCard = document.getElementById('recipeFormCard');
     const ingredientRows = document.getElementById('ingredientRows');
     const ocrFeedback = document.getElementById('ocrFeedback');
+    const pasteBoxPanel = document.getElementById('pasteBoxPanel');
+    const rawRecipePasteInput = document.getElementById('rawRecipePasteInput');
 
     document.querySelectorAll('#recipeTagSelector .tag-toggle').forEach(btn => {
         btn.addEventListener('click', () => btn.classList.toggle('selected'));
@@ -3071,6 +3197,32 @@
         document.querySelectorAll('#recipeTagSelector .tag-toggle').forEach(b => {
             b.classList.toggle('selected', tags.includes(b.dataset.tag));
         });
+    }
+
+    function matchTagsFromString(rawTagLine) {
+        const found = new Set();
+        const lower = (rawTagLine || '').toLowerCase();
+
+        const tagMatchers = [
+            { tag: 'Kindgerecht', keys: ['kindgerecht', 'kinder', 'kleinkind', 'familienfreundlich'] },
+            { tag: 'Schnell', keys: ['schnell', 'feierabend', 'blitz', '15 min', '20 min'] },
+            { tag: 'Vegetarisch', keys: ['vegetarisch', 'veggie', 'vegan', 'fleischlos'] },
+            { tag: 'Grillen', keys: ['grillen', 'grill', 'bbq', 'barbecue', 'dutch oven'] },
+            { tag: 'Einfrierbar', keys: ['einfrierbar', 'einfrieren', 'meal-prep', 'meal prep', 'vorkochen'] },
+            { tag: 'Proteinreich', keys: ['proteinreich', 'protein', 'eiweißreich', 'high-protein', 'high protein'] },
+            { tag: 'Low-Carb', keys: ['low-carb', 'low carb', 'kohlenhydratarm', 'keto'] },
+            { tag: 'Leicht', keys: ['leicht', 'kalorienarm', 'figurbewusst', 'gesund', 'salat'] },
+            { tag: 'One-Pot', keys: ['one-pot', 'one pot', 'ein topf', 'pfannengericht', 'blech', 'ofen'] },
+            { tag: 'Backen', keys: ['backen', 'kuchen', 'gebäck', 'muffins', 'brot', 'torte', 'plätzchen'] }
+        ];
+
+        tagMatchers.forEach(m => {
+            if (m.keys.some(k => lower.includes(k))) {
+                found.add(m.tag);
+            }
+        });
+
+        return Array.from(found);
     }
 
     function addIngredientInputRow(name = '', amount = '', unit = 'g') {
@@ -3110,73 +3262,174 @@
             });
     }
 
-    function parseRecipeTextIntoForm(rawText) {
-        const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        if (lines.length === 0) return;
+    function stripMarkdownFormatting(line) {
+        return line
+            .replace(/^#+\s*/g, '')
+            .replace(/\*\*/g, '')
+            .replace(/__/g, '')
+            .replace(/^[-*•·▪◦►✓✔]\s*/g, '')
+            .replace(/^\*([^*]+)\*/g, '$1')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function mapUnitString(rawUnit) {
+        const u = (rawUnit || '').toLowerCase().replace(/\.$/, '');
+        if (['g', 'gr', 'gramm'].includes(u)) return 'g';
+        if (['kg', 'kilogramm', 'kilo'].includes(u)) return 'kg';
+        if (['ml', 'milliliter'].includes(u)) return 'ml';
+        if (['l', 'liter'].includes(u)) return 'l';
+        if (['tl', 'teelöffel', 'teeloeffel'].includes(u)) return 'TL';
+        if (['el', 'esslöffel', 'essloeffel'].includes(u)) return 'EL';
+        if (['prise', 'prisen'].includes(u)) return 'Prise';
+        if (['bund', 'bunde', 'bündel'].includes(u)) return 'Bund';
+        if (['zehe', 'zehen', 'knoblauchzehe', 'knoblauchzehen'].includes(u)) return 'Zehe';
+        if (['dose', 'dosen', 'glas', 'gläser', 'glaeser', 'becher', 'packung', 'pck', 'päckchen'].includes(u)) return 'Dosen';
+        return 'Stk.';
+    }
+
+    function parseRecipeTextIntoForm(rawText, sourceLabel = 'Text') {
+        const rawLines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (rawLines.length === 0) return;
 
         let title = '';
         const parsedIngredients = [];
         const stepLines = [];
-        let inStepsSection = false;
+        const detectedTags = new Set();
+        let section = 'UNKNOWN';
 
-        const ingRegex = /^[-•*]?\s*(\d+(?:[.,]\d+)?)\s*(g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|tl|teelöffel|el|esslöffel|prise|prisen|bund|zehe|zehen|dose|dosen|glas|gläser|stk\.?|stück|packung|pck\.?)?\s+(.+)$/i;
+        const unitPattern = 'g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|tl|teelöffel|el|esslöffel|prise|prisen|bund|zehe|zehen|dose|dosen|glas|gläser|becher|stk\\.?|stück|packung|pck\\.?|päckchen';
+        const ingFrontRegex = new RegExp(`^(?:ca\\.?\\s+|etwa\\s+|gut\\s+|knapp\\s+)?(\\d+(?:[.,]\\d+)?|l|I)\\s*(${unitPattern})?\\s+(.+)$`, 'i');
+        const ingBackRegex = new RegExp(`^([A-Za-zÄÖÜäöüß\\s\\-()]+?)[,:]?\\s+(\\d+(?:[.,]\\d+)?)\\s*(${unitPattern})$`, 'i');
 
-        lines.forEach((line, idx) => {
-            const cleanLine = normalizeUnicodeFractions(line);
+        rawLines.forEach((rawLine, idx) => {
+            if (/^[-*_]{3,}$/.test(rawLine)) return;
+
+            const hadBullet = /^[-*•·▪◦]\s+/.test(rawLine);
+            let cleanLine = stripMarkdownFormatting(normalizeUnicodeFractions(rawLine));
+            if (!cleanLine) return;
+
             const lower = cleanLine.toLowerCase();
 
-            const servMatch = lower.match(/(?:für|ergibt)\s+(\d+(?:[.,]\d+)?)\s*(?:personen|portionen|stück)/i);
-            if (servMatch) {
+            // 1. Explizite Kategorie- / Tag-Zeile abfangen
+            const tagLineMatch = cleanLine.match(/^(?:kategorie(?:n)?|tags?|schlagwörter|labels?)\s*[:\-]\s*(.+)$/i);
+            if (tagLineMatch) {
+                matchTagsFromString(tagLineMatch[1]).forEach(t => detectedTags.add(t));
+                return;
+            }
+            // Falls Zeile fast nur aus Tag-Chips mit Emojis besteht (z. B. "👶 Kindgerecht • ⚡ Schnell")
+            if (cleanLine.length <= 95 && /[👶⚡🥦🔥🧊💪🌾🥗🍲🧁]/.test(cleanLine) && !ingFrontRegex.test(cleanLine)) {
+                const emojiTags = matchTagsFromString(cleanLine);
+                if (emojiTags.length > 0) {
+                    emojiTags.forEach(t => detectedTags.add(t));
+                    return;
+                }
+            }
+
+            // 2. Portionen erkennen
+            const servMatch = lower.match(/(?:für|ergibt|portionen:?|personen:?)\s*(\d+(?:[.,]\d+)?)\s*(?:personen|portionen|stück|pers\.?)?/i);
+            if (servMatch && cleanLine.length <= 45) {
                 document.getElementById('recServings').value = parseFloat(servMatch[1].replace(',', '.')) || 4;
-                inStepsSection = false;
+                if (/^(zutaten|einkaufsliste)/i.test(lower)) {
+                    section = 'INGREDIENTS';
+                }
                 return;
             }
 
-            if (/^(zubereitung|schritte|anleitung|vorgehen)\b/i.test(lower)) {
-                inStepsSection = true;
+            // 3. Abschnitts-Überschriften erkennen
+            if (/^(zubereitung|schritte|anleitung|vorgehen|so geht'?s|zubereitungsschritte)\b/i.test(lower) && cleanLine.length <= 40) {
+                section = 'STEPS';
                 return;
             }
-            if (/^(zutaten)\b/i.test(lower)) {
-                inStepsSection = false;
-                return;
-            }
-
-            if (idx === 0 && cleanLine.length <= 65 && !ingRegex.test(cleanLine)) {
-                title = cleanLine;
+            if (/^(zutaten|einkaufsliste|du brauchst)\b/i.test(lower) && cleanLine.length <= 45) {
+                section = 'INGREDIENTS';
                 return;
             }
 
-            if (!inStepsSection) {
-                const match = cleanLine.match(ingRegex);
-                if (match && match[3].length <= 45) {
-                    const num = parseFloat(match[1].replace(',', '.'));
-                    const rawUnit = (match[2] || '').toLowerCase();
-                    let mappedUnit = 'Stk.';
+            // 4. Zwischenüberschriften im Zutatenteil ignorieren (z. B. "Für den Teig:", "Für das Topping:", "Zum Garnieren:")
+            if (/^(für\s+(?:den|die|das)|zum\s+(?:garnieren|servieren|bestreuen|braten|backen)|außerdem)\b.*:?$/i.test(cleanLine) && cleanLine.length <= 45) {
+                if (section !== 'STEPS') section = 'INGREDIENTS';
+                return;
+            }
 
-                    if (['g', 'gr', 'gramm'].includes(rawUnit)) mappedUnit = 'g';
-                    else if (['kg', 'kilogramm'].includes(rawUnit)) mappedUnit = 'kg';
-                    else if (['ml', 'milliliter'].includes(rawUnit)) mappedUnit = 'ml';
-                    else if (['l', 'liter'].includes(rawUnit)) mappedUnit = 'l';
-                    else if (['tl', 'teelöffel'].includes(rawUnit)) mappedUnit = 'TL';
-                    else if (['el', 'esslöffel'].includes(rawUnit)) mappedUnit = 'EL';
-                    else if (['prise', 'prisen'].includes(rawUnit)) mappedUnit = 'Prise';
-                    else if (rawUnit === 'bund') mappedUnit = 'Bund';
-                    else if (['zehe', 'zehen'].includes(rawUnit)) mappedUnit = 'Zehe';
-                    else if (['dose', 'dosen', 'glas', 'gläser'].includes(rawUnit)) mappedUnit = 'Dosen';
+            // 5. Titel übernehmen
+            if (!title && idx <= 2 && section !== 'INGREDIENTS' && section !== 'STEPS' && !hadBullet && cleanLine.length >= 3 && cleanLine.length <= 75 && !ingFrontRegex.test(cleanLine) && !/^\d+[.)]\s/.test(cleanLine)) {
+                title = cleanLine.replace(/:$/, '');
+                return;
+            }
 
+            // 6. Nummerierte Schritte erkennen
+            const numberedStepMatch = cleanLine.match(/^(\d+)[.)]\s+(.+)$/);
+            if (numberedStepMatch && (section === 'STEPS' || !hadBullet)) {
+                section = 'STEPS';
+                stepLines.push(`${numberedStepMatch[1]}. ${numberedStepMatch[2].trim()}`);
+                return;
+            }
+
+            // 7. Zutaten parsen
+            if (section !== 'STEPS') {
+                const matchFront = cleanLine.match(ingFrontRegex);
+                if (matchFront && matchFront[3].length >= 2 && matchFront[3].length <= 65) {
+                    const rawNum = (matchFront[1] === 'l' || matchFront[1] === 'I') ? '1' : matchFront[1];
+                    let num = parseFloat(rawNum.replace(',', '.'));
+                    let mappedUnit = mapUnitString(matchFront[2]);
+                    let ingName = matchFront[3].replace(/^[,.-]\s*/, '').trim();
+
+                    const stuckUnitMatch = ingName.match(/^(g|gr|kg|ml|l|tl|el)\s+(.+)$/i);
+                    if (!matchFront[2] && stuckUnitMatch) {
+                        mappedUnit = mapUnitString(stuckUnitMatch[1]);
+                        ingName = stuckUnitMatch[2].trim();
+                    }
+
+                    const parenWeightMatch = ingName.match(/\((\d+(?:[.,]\d+)?)\s*(g|ml|kg|l)\)/i);
+                    if (parenWeightMatch && (mappedUnit === 'Dosen' || mappedUnit === 'Stk.')) {
+                        num = parseFloat(parenWeightMatch[1].replace(',', '.'));
+                        mappedUnit = mapUnitString(parenWeightMatch[2]);
+                        ingName = ingName.replace(parenWeightMatch[0], '').replace(/\s+/g, ' ').trim();
+                    }
+
+                    const cleanIngName = ingName.replace(/\s*\(optional\)/i, '').trim();
+
+                    section = 'INGREDIENTS';
                     parsedIngredients.push({
-                        name: match[3].trim(),
+                        name: cleanIngName,
                         amount: !isNaN(num) ? num : '',
                         unit: mappedUnit
                     });
                     return;
                 }
+
+                const matchBack = cleanLine.match(ingBackRegex);
+                if (matchBack && matchBack[1].length >= 2 && matchBack[1].length <= 50) {
+                    const num = parseFloat(matchBack[2].replace(',', '.'));
+                    section = 'INGREDIENTS';
+                    parsedIngredients.push({
+                        name: matchBack[1].trim(),
+                        amount: !isNaN(num) ? num : '',
+                        unit: mapUnitString(matchBack[3])
+                    });
+                    return;
+                }
+
+                if (section === 'INGREDIENTS' && cleanLine.length <= 45 && !/[.!?]$/.test(cleanLine)) {
+                    const cleanedNoAmt = cleanLine.replace(/^(etwas|nach bedarf|nach geschmack|eine prise)\s+/i, '').trim();
+                    const defaultUnit = /^eine prise/i.test(cleanLine) ? 'Prise' : 'Stk.';
+                    parsedIngredients.push({
+                        name: cleanedNoAmt,
+                        amount: '',
+                        unit: defaultUnit
+                    });
+                    return;
+                }
             }
 
-            stepLines.push(line);
+            // 8. Alles andere als Zubereitungsschritt
+            if (cleanLine.length >= 6) {
+                stepLines.push(cleanLine);
+            }
         });
 
-        if (title && !document.getElementById('recTitle').value.trim()) {
+        if (title) {
             document.getElementById('recTitle').value = title;
         }
 
@@ -3186,28 +3439,156 @@
         }
 
         if (stepLines.length > 0) {
-            const existingNotes = document.getElementById('recNotes').value.trim();
-            const newNotes = stepLines.join('\n');
-            document.getElementById('recNotes').value = existingNotes ? `${existingNotes}\n${newNotes}` : newNotes;
+            // Sauber ersetzen statt doppelt anhängen
+            document.getElementById('recNotes').value = stepLines.join('\n');
         }
 
+        // Intelligentes Auto-Tagging ergänzen
+        const pseudoRec = {
+            title: title || document.getElementById('recTitle').value,
+            servings: parseFloat(document.getElementById('recServings').value) || 4,
+            ingredients: parsedIngredients.map(i => ({ ...i, amount: i.amount ? parseFloat(i.amount) : null })),
+            notes: stepLines.join('\n'),
+            tags: Array.from(detectedTags)
+        };
+        const autoInfo = analyzeRecipeCharacteristics(pseudoRec);
+        if (autoInfo.isBaking) detectedTags.add('Backen');
+        if (autoInfo.isVeggie) detectedTags.add('Vegetarisch');
+        if (autoInfo.isKidFriendly) detectedTags.add('Kindgerecht');
+        if (autoInfo.isQuick) detectedTags.add('Schnell');
+        if (autoInfo.isGrill) detectedTags.add('Grillen');
+        if (autoInfo.isMealPrep) detectedTags.add('Einfrierbar');
+        if (autoInfo.isOnePot) detectedTags.add('One-Pot');
+        if (autoInfo.isHighProtein) detectedTags.add('Proteinreich');
+        if (autoInfo.isLight) detectedTags.add('Leicht');
+        if (autoInfo.isLowCarb) detectedTags.add('Low-Carb');
+
+        const finalTags = Array.from(detectedTags);
+        setSelectedFormTags(finalTags);
+
+        const tagSummary = finalTags.length > 0 ? ` & Tags (${finalTags.join(', ')})` : '';
         ocrFeedback.style.display = 'block';
         ocrFeedback.style.color = 'var(--success)';
-        ocrFeedback.textContent = `✅ Erkannt: ${parsedIngredients.length} Zutaten & ${stepLines.length} Textzeilen übernommen! Bitte kurz prüfen.`;
+        ocrFeedback.textContent = `✅ ${sourceLabel} erkannt: ${parsedIngredients.length} Zutaten, ${stepLines.length} Schritte${tagSummary} übernommen!`;
     }
+
+    // --- PDF-TEXTEXTRAKTION (ZEILENGENAU) ---
+    async function extractTextFromPdfFile(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+
+            const rowsMap = new Map();
+            textContent.items.forEach(item => {
+                if (!item.str || !item.str.trim()) return;
+                const y = Math.round(item.transform[5] / 4) * 4;
+                if (!rowsMap.has(y)) rowsMap.set(y, []);
+                rowsMap.get(y).push({ x: item.transform[4], str: item.str });
+            });
+
+            const sortedYs = Array.from(rowsMap.keys()).sort((a, b) => b - a);
+            sortedYs.forEach(y => {
+                const lineItems = rowsMap.get(y).sort((a, b) => a.x - b.x);
+                const lineText = lineItems.map(i => i.str).join(' ').replace(/\s+/g, ' ').trim();
+                if (lineText) fullText += lineText + '\n';
+            });
+        }
+
+        return fullText.trim();
+    }
+
+    // --- BILD VORVERARBEITEN FÜR BESSERE OCR BEI SCREENSHOTS ---
+    async function preprocessImageForOcr(file) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const scale = img.width < 1200 ? 2 : 1.5;
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.width * scale);
+                canvas.height = Math.round(img.height * scale);
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.filter = 'grayscale(100%) contrast(140%)';
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                resolve(file);
+            };
+            img.src = url;
+        });
+    }
+
+    // --- BUTTONS FÜR PDF / SCREENSHOT / KAMERA / ZWISCHENABLAGE ---
+    const pdfImgFileInput = document.getElementById('pdfImgFileInput');
+    document.getElementById('importPdfImgBtn').addEventListener('click', () => pdfImgFileInput.click());
+
+    pdfImgFileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        ocrFeedback.style.display = 'block';
+        ocrFeedback.style.color = 'var(--primary)';
+
+        try {
+            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                ocrFeedback.textContent = '⏳ Lese Rezept-PDF aus...';
+                const pdfText = await extractTextFromPdfFile(file);
+                if (pdfText && pdfText.length > 15) {
+                    parseRecipeTextIntoForm(pdfText, 'PDF');
+                } else {
+                    ocrFeedback.style.color = 'var(--danger)';
+                    ocrFeedback.textContent = '⚠️ Dieses PDF enthält nur ein eingescanntes Bild ohne Textebene. Mach davon kurz einen Screenshot und wähle ihn hier aus!';
+                }
+            } else {
+                ocrFeedback.textContent = '⏳ Optimiere Screenshot & lese Rezepttext aus (ca. 5 Sek.)...';
+                const processedCanvas = await preprocessImageForOcr(file);
+                const result = await Tesseract.recognize(processedCanvas, 'deu');
+                parseRecipeTextIntoForm(result.data.text || '', 'Screenshot');
+            }
+        } catch (err) {
+            ocrFeedback.style.color = 'var(--danger)';
+            ocrFeedback.textContent = '❌ Datei konnte nicht gelesen werden. Bitte prüfe das Format (PDF, PNG, JPG).';
+        }
+        pdfImgFileInput.value = '';
+    });
 
     document.getElementById('pasteRecipeBtn').addEventListener('click', async () => {
         try {
             const clipText = await navigator.clipboard.readText();
-            if (!clipText || !clipText.trim()) {
-                alert('Die Zwischenablage ist leer. Markiere zuerst ein Rezept (z. B. über Circle to Search) und tippe auf „Kopieren“.');
+            if (clipText && clipText.trim().length > 10) {
+                parseRecipeTextIntoForm(clipText, 'Zwischenablage');
                 return;
             }
-            parseRecipeTextIntoForm(clipText);
-        } catch (err) {
-            const manual = prompt('Dein Browser blockiert den direkten Zugriff auf die Zwischenablage. Füge den kopierten Text einfach hier ein:');
-            if (manual) parseRecipeTextIntoForm(manual);
+        } catch (err) {}
+
+        pasteBoxPanel.classList.remove('hidden');
+        rawRecipePasteInput.value = '';
+        rawRecipePasteInput.focus();
+    });
+
+    document.getElementById('applyPastedTextBtn').addEventListener('click', () => {
+        const txt = rawRecipePasteInput.value.trim();
+        if (!txt) {
+            alert('Bitte füge zuerst den Rezepttext in das Feld ein.');
+            return;
         }
+        parseRecipeTextIntoForm(txt, 'Rezepttext');
+        pasteBoxPanel.classList.add('hidden');
+        rawRecipePasteInput.value = '';
+    });
+
+    document.getElementById('closePasteBoxBtn').addEventListener('click', () => {
+        pasteBoxPanel.classList.add('hidden');
+        rawRecipePasteInput.value = '';
     });
 
     const ocrFileInput = document.getElementById('ocrFileInput');
@@ -3219,36 +3600,44 @@
 
         ocrFeedback.style.display = 'block';
         ocrFeedback.style.color = 'var(--primary)';
-        ocrFeedback.textContent = '⏳ Lese Rezepttext vom Foto aus (dauert ca. 5–10 Sekunden)...';
+        ocrFeedback.textContent = '⏳ Lese Rezepttext vom Foto aus (ca. 5–8 Sekunden)...';
 
         try {
-            const result = await Tesseract.recognize(file, 'deu');
-            parseRecipeTextIntoForm(result.data.text || '');
+            const processedCanvas = await preprocessImageForOcr(file);
+            const result = await Tesseract.recognize(processedCanvas, 'deu');
+            parseRecipeTextIntoForm(result.data.text || '', 'Foto');
         } catch (err) {
             ocrFeedback.style.color = 'var(--danger)';
-            ocrFeedback.textContent = '❌ Texterkennung fehlgeschlagen. Tipp: Nutze Circle to Search auf dem Handy und tippe auf „Aus Zwischenablage“!';
+            ocrFeedback.textContent = '❌ Texterkennung fehlgeschlagen. Tipp: Mache einen Screenshot und nutze „PDF oder Screenshot importieren“.';
         }
         ocrFileInput.value = '';
     });
 
-    toggleRecipeFormBtn.addEventListener('click', () => {
-        recipeFormCard.classList.remove('hidden');
-        toggleRecipeFormBtn.classList.add('hidden');
-        ocrFeedback.style.display = 'none';
+    function resetRecipeFormFieldsOnly() {
+        document.getElementById('recipeForm').reset();
         document.getElementById('editRecipeId').value = '';
         document.getElementById('recServings').value = 4;
         setSelectedFormTags([]);
         document.getElementById('recipeFormTitle').textContent = 'Neues Rezept anlegen';
         document.getElementById('saveRecipeBtn').textContent = '💾 Rezept speichern';
-        if (ingredientRows.children.length === 0) {
-            addIngredientInputRow('', '', 'g');
-            addIngredientInputRow('', '', 'EL');
-        }
+        document.getElementById('saveAndNextRecipeBtn').classList.remove('hidden');
+        ingredientRows.innerHTML = '';
+        addIngredientInputRow('', '', 'g');
+        addIngredientInputRow('', '', 'EL');
+    }
+
+    toggleRecipeFormBtn.addEventListener('click', () => {
+        recipeFormCard.classList.remove('hidden');
+        toggleRecipeFormBtn.classList.add('hidden');
+        pasteBoxPanel.classList.add('hidden');
+        ocrFeedback.style.display = 'none';
+        resetRecipeFormFieldsOnly();
     });
 
     document.getElementById('closeRecipeFormBtn').addEventListener('click', () => {
         recipeFormCard.classList.add('hidden');
         toggleRecipeFormBtn.classList.remove('hidden');
+        pasteBoxPanel.classList.add('hidden');
         document.getElementById('recipeForm').reset();
         document.getElementById('editRecipeId').value = '';
         setSelectedFormTags([]);
@@ -3258,8 +3647,7 @@
 
     document.getElementById('addIngRowBtn').addEventListener('click', () => addIngredientInputRow('', '', 'TL'));
 
-    document.getElementById('recipeForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
+    async function saveRecipeEntry(keepOpenForNext = false) {
         const editId = document.getElementById('editRecipeId').value;
         const title = document.getElementById('recTitle').value.trim();
         const servings = parseFloat(document.getElementById('recServings').value) || 4;
@@ -3267,6 +3655,12 @@
         const notes = document.getElementById('recNotes').value.trim();
         const rows = ingredientRows.querySelectorAll('.ing-builder-row');
         const ingredients = [];
+
+        if (!title) {
+            alert('Bitte einen Rezeptnamen eingeben.');
+            document.getElementById('recTitle').focus();
+            return;
+        }
 
         rows.forEach(r => {
             const n = r.querySelector('.ing-name').value.trim();
@@ -3286,16 +3680,34 @@
             return;
         }
 
-        document.getElementById('closeRecipeFormBtn').click();
-
         if (editId) {
             await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", editId), { title, servings, tags, notes, ingredients });
         } else {
             await addDoc(rezepteRef, { title, servings, tags, notes, ingredients, plannedThisWeek: false, lastCooked: null });
         }
 
-        // Stufe 3: Unbekannte Zutaten im Hintergrund über OpenFoodFacts abfragen & dauerhaft merken
         fetchAndLearnMissingNutrition(ingredients);
+
+        if (keepOpenForNext) {
+            resetRecipeFormFieldsOnly();
+            pasteBoxPanel.classList.remove('hidden');
+            rawRecipePasteInput.value = '';
+            ocrFeedback.style.display = 'block';
+            ocrFeedback.style.color = 'var(--success)';
+            ocrFeedback.textContent = `✅ "${title}" gespeichert – füge direkt das nächste Rezept ein!`;
+            rawRecipePasteInput.focus();
+        } else {
+            document.getElementById('closeRecipeFormBtn').click();
+        }
+    }
+
+    document.getElementById('recipeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveRecipeEntry(false);
+    });
+
+    document.getElementById('saveAndNextRecipeBtn').addEventListener('click', async () => {
+        await saveRecipeEntry(true);
     });
 
     window.editRecipe = function(id) {
@@ -3304,7 +3716,9 @@
 
         recipeFormCard.classList.remove('hidden');
         toggleRecipeFormBtn.classList.add('hidden');
+        pasteBoxPanel.classList.add('hidden');
         ocrFeedback.style.display = 'none';
+        document.getElementById('saveAndNextRecipeBtn').classList.add('hidden');
 
         document.getElementById('editRecipeId').value = rec.id;
         document.getElementById('recTitle').value = rec.title;
@@ -3597,7 +4011,8 @@
                 const autoInfo = analyzeRecipeCharacteristics(rec);
                 const matchesTag = recTags.includes(activeRecipeTagFilter) ||
                     (activeRecipeTagFilter === 'Kindgerecht' && autoInfo.isKidFriendly) ||
-                    (activeRecipeTagFilter === 'Vegetarisch' && autoInfo.isVeggie);
+                    (activeRecipeTagFilter === 'Vegetarisch' && autoInfo.isVeggie) ||
+                    (activeRecipeTagFilter === 'Backen' && autoInfo.isBaking);
                 if (!matchesTag) return false;
             }
 
@@ -3738,11 +4153,11 @@
             return new Date(a.mhd) - new Date(b.mhd);
         });
         const topItems = sorted.slice(0, 10).map(i => `${i.amount} ${i.unit} ${i.name}`).join(', ');
-        const promptText = `Erstelle mir einen ausgewogenen, kleinkindgerechten Wochenplan (für 2 Erwachsene + 1 Kleinkind) und nutze dabei bevorzugt diese Vorräte, die bald verbraucht werden sollten: ${topItems}. Gib mir jedes Rezept im Format Titel, Zutatenliste mit Mengen und kurze Zubereitungsschritte aus.`;
+        const promptText = `Erstelle mir einen ausgewogenen, kleinkindgerechten Wochenplan (für 2 Erwachsene + 1 Kleinkind) und nutze dabei bevorzugt diese Vorräte, die bald verbraucht werden sollten: ${topItems}. Gib mir jedes Rezept im Format Titel, Portionen, passende Tags aus (Kindgerecht, Schnell, Vegetarisch, Grillen, Einfrierbar, Proteinreich, Low-Carb, Leicht, One-Pot, Backen), Zutatenliste mit Mengen und kurze Zubereitungsschritte aus.`;
 
         try {
             await navigator.clipboard.writeText(promptText);
-            alert(`🍳 Wochenplan- & Kochideen-Anfrage in die Zwischenablage kopiert!\n\nDu kannst sie jetzt direkt in Gemini einfügen und die Rezepte anschließend über „📋 Aus Zwischenablage“ speichern.`);
+            alert(`🍳 Wochenplan- & Kochideen-Anfrage in die Zwischenablage kopiert!\n\nDu kannst sie jetzt direkt in Gemini einfügen und die Rezepte anschließend über „📋 Text einfügen“ speichern.`);
         } catch (e) {
             alert(`🍳 Vorräte zum Verkochen:\n\n${topItems}`);
         }
@@ -3929,11 +4344,7 @@
             const knownItem = inventory.find(i => i.name.trim().toLowerCase() === item.name.trim().toLowerCase());
 
             switchTab('VORRAT');
-            userTouchedMhd = false;
-            mhdHint.style.display = 'none';
-            mhdParsedPreview.textContent = '';
-            mhdIsoValue.value = '';
-            mhdCalendar.value = '';
+            resetItemFormFieldsOnly();
             formCard.classList.remove('hidden');
             toggleFormBtn.classList.add('hidden');
             document.getElementById('name').value = item.name;
