@@ -501,6 +501,7 @@
         .badge-opened { background: #ede9fe; color: var(--opened); }
         .badge-ready { background: #dcfce7; color: var(--success); }
         .badge-tag { background: #f3f4f6; color: #374151; }
+        .badge-cat { background: #e0e7ff; color: #3730a3; }
         .badge-kcal { background: #fef3c7; color: #92400e; }
 
         .controls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
@@ -1285,13 +1286,32 @@
             <form id="recipeForm">
                 <input type="hidden" id="editRecipeId">
                 <div class="form-grid" style="margin-bottom:10px;">
-                    <input type="text" id="recTitle" placeholder="Rezeptname (z.B. Spaghetti Bolognese)" required>
+                    <input type="text" id="recTitle" class="full-width" placeholder="Rezeptname (z.B. Spaghetti Bolognese)" required>
                     <div class="field-group">
-                        <input type="number" id="recServings" value="4" min="0.5" max="20" step="0.5" placeholder="Portionen" title="Anzahl Portionen">
+                        <span class="field-label">Kategorie / Anlass</span>
+                        <select id="recCategory">
+                            <option value="Hauptgericht">🍽️ Hauptgericht</option>
+                            <option value="DessertsSuessspeisen">🍮 Desserts & Süßspeisen</option>
+                            <option value="KuchenGebaeck">🍰 Kuchen, Torten & Gebäck</option>
+                            <option value="PlaetzchenKleingebaeck">🍪 Plätzchen & Kleingebäck</option>
+                            <option value="WeihnachtenAdvent">🎄 Weihnachten & Advent</option>
+                            <option value="HerbstSaison">🎃 Herbst & Saison</option>
+                            <option value="FruehstueckBrunch">🥣 Frühstück & Brunch</option>
+                            <option value="SalateKalteKueche">🥗 Salate & Kalte Küche</option>
+                            <option value="SuppenEintoepfe">🍲 Suppen & Eintöpfe</option>
+                            <option value="BeilagenBrot">🥖 Beilagen & Brot</option>
+                            <option value="DipsSossenPestos">🥣 Dips, Soßen & Pestos</option>
+                            <option value="PartyFingerfood">🎉 Party, Fingerfood & Snacks</option>
+                            <option value="GetraenkeSirup">🍹 Getränke & Sirup</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <span class="field-label">Portionen / Stück</span>
+                        <input type="number" id="recServings" value="4" min="0.5" max="40" step="0.5" placeholder="Portionen" title="Anzahl Portionen">
                     </div>
                 </div>
 
-                <div class="field-label" style="margin-bottom:5px;">Kategorie / Tags (werden beim Einfügen automatisch erkannt):</div>
+                <div class="field-label" style="margin-bottom:5px;">Eigenschaften / Tags (werden beim Einfügen automatisch geprüft):</div>
                 <div id="recipeTagSelector" class="tag-selector">
                     <button type="button" class="tag-toggle" data-tag="Kindgerecht">👶 Kindgerecht</button>
                     <button type="button" class="tag-toggle" data-tag="Schnell">⚡ Schnell</button>
@@ -1321,9 +1341,27 @@
             <button type="button" id="wakeLockBtn" class="wake-btn">Aus</button>
         </div>
 
-        <div class="search-box-wrapper">
-            <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat suchen (z.B. Kokosmilch, Brokkoli...)">
-            <button type="button" id="clearRecipeSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
+        <div class="form-grid" style="margin-bottom:10px;">
+            <div class="search-box-wrapper" style="margin-bottom:0;">
+                <input type="text" id="recipeSearchInput" placeholder="🔍 Rezept oder Zutat...">
+                <button type="button" id="clearRecipeSearchBtn" class="clear-search-btn" title="Suche löschen">✕</button>
+            </div>
+            <select id="filterRecipeCategory" style="border:2px solid var(--primary); box-shadow: 0 3px 8px rgba(0,0,0,0.15);">
+                <option value="ALLE">📂 Alle Kategorien</option>
+                <option value="Hauptgericht">🍽️ Hauptgericht</option>
+                <option value="DessertsSuessspeisen">🍮 Desserts & Süßspeisen</option>
+                <option value="KuchenGebaeck">🍰 Kuchen, Torten & Gebäck</option>
+                <option value="PlaetzchenKleingebaeck">🍪 Plätzchen & Kleingebäck</option>
+                <option value="WeihnachtenAdvent">🎄 Weihnachten & Advent</option>
+                <option value="HerbstSaison">🎃 Herbst & Saison</option>
+                <option value="FruehstueckBrunch">🥣 Frühstück & Brunch</option>
+                <option value="SalateKalteKueche">🥗 Salate & Kalte Küche</option>
+                <option value="SuppenEintoepfe">🍲 Suppen & Eintöpfe</option>
+                <option value="BeilagenBrot">🥖 Beilagen & Brot</option>
+                <option value="DipsSossenPestos">🥣 Dips, Soßen & Pestos</option>
+                <option value="PartyFingerfood">🎉 Party, Fingerfood & Snacks</option>
+                <option value="GetraenkeSirup">🍹 Getränke & Sirup</option>
+            </select>
         </div>
 
         <div class="chip-row">
@@ -1524,6 +1562,7 @@
     const clearSearchBtn = document.getElementById('clearSearchBtn');
     const recipeSearchInput = document.getElementById('recipeSearchInput');
     const clearRecipeSearchBtn = document.getElementById('clearRecipeSearchBtn');
+    const filterRecipeCategory = document.getElementById('filterRecipeCategory');
     const quickCheckBanner = document.getElementById('quickCheckBanner');
     const filterCategory = document.getElementById('filterCategory');
     const filterLocation = document.getElementById('filterLocation');
@@ -1545,6 +1584,22 @@
         'Getränke': '🧃 Getränke',
         'SuessigkeitenSnacks': '🍿 Süßigkeiten & Snacks',
         'Sonstiges': '📦 Sonstiges'
+    };
+
+    const recipeCategoryLabels = {
+        'Hauptgericht': '🍽️ Hauptgericht',
+        'DessertsSuessspeisen': '🍮 Desserts & Süßspeisen',
+        'KuchenGebaeck': '🍰 Kuchen, Torten & Gebäck',
+        'PlaetzchenKleingebaeck': '🍪 Plätzchen & Kleingebäck',
+        'WeihnachtenAdvent': '🎄 Weihnachten & Advent',
+        'HerbstSaison': '🎃 Herbst & Saison',
+        'FruehstueckBrunch': '🥣 Frühstück & Brunch',
+        'SalateKalteKueche': '🥗 Salate & Kalte Küche',
+        'SuppenEintoepfe': '🍲 Suppen & Eintöpfe',
+        'BeilagenBrot': '🥖 Beilagen & Brot',
+        'DipsSossenPestos': '🥣 Dips, Soßen & Pestos',
+        'PartyFingerfood': '🎉 Party, Fingerfood & Snacks',
+        'GetraenkeSirup': '🍹 Getränke & Sirup'
     };
 
     const recipeTagLabels = {
@@ -1703,33 +1758,92 @@
         };
     }
 
+    // --- GESCHÄRFTE ANALYSE FÜR ALLE 10 AUTO-TAGS ---
     function analyzeRecipeCharacteristics(rec) {
         const ings = rec.ingredients || [];
         const tags = rec.tags || [];
+        const cat = rec.category || 'Hauptgericht';
+        const titleLower = (rec.title || '').toLowerCase();
         const ingNamesLower = ings.map(i => (i.name || '').toLowerCase()).join(' ');
-        const text = `${rec.title || ''} ${ingNamesLower} ${rec.notes || ''}`.toLowerCase();
+        const notesLower = (rec.notes || '').toLowerCase();
+        const text = `${titleLower} ${ingNamesLower} ${notesLower}`;
         const nut = calculateRecipeNutrition(rec, rec.servings || 4);
 
-        const meatFishRegex = /\b(fleisch|hackfleisch|rinderhack|schweinehack|gemischtes hack|hähnchen|hühnchen|pute|putenbrust|schnitzel|steak|bratwurst|würstchen|schinken|speck|bacon|fisch|lachs|thunfisch|garnelen|salami|kotelett|gulasch)\b/;
-        const nonKidKeywords = ['chili', 'jalapeño', 'tabasco', 'cayenne', 'alkohol', 'rotwein', 'weißwein', 'bier', 'rum', 'espresso', 'kaffee'];
-        const bakingKeywords = ['backpulver', 'trockenhefe', 'frische hefe', 'hefe', 'kuvertüre', 'kuchen', 'muffin', 'muffins', 'plätzchen', 'kekse', 'torte', 'waffeln', 'pfannkuchen', 'bananenbrot', 'hefeteig', 'mürbeteig', 'rührteig', 'biskuit', 'streusel', 'vanillezucker', 'puderzucker'];
-        const grillKeywords = ['grill', 'bbq', 'barbecue', 'rost', 'direkte hitze', 'indirekte hitze', 'dutch oven', 'räuchern', 'smoker'];
-        const onePotKeywords = ['one-pot', 'one pot', 'eintopf', 'pfannengericht', 'blech', 'auflauf', 'alles in einen topf', 'in einer pfanne'];
+        // 1. Backen (Pfannkuchen & Waffeln bewusst getrennt)
+        const bakingKeywords = /\b(backpulver|trockenhefe|frische hefe|kuvertüre|kuchen|muffin|muffins|plätzchen|kekse|torte|bananenbrot|hefeteig|mürbeteig|rührteig|biskuit|streusel|stollen|lebkuchen|spekulatius|zimtsterne)\b/;
+        const isBakingCat = ['KuchenGebaeck', 'PlaetzchenKleingebaeck', 'WeihnachtenAdvent'].includes(cat) && bakingKeywords.test(text);
+        const isBaking = tags.includes('Backen') || bakingKeywords.test(text) || isBakingCat;
 
-        const timeMatch = text.match(/(\d+)\s*(?:min|minuten)/);
-        const mentionedMinutes = timeMatch ? parseInt(timeMatch[1], 10) : null;
+        // 2. Vegetarisch (inkl. versteckter tierischer Zutaten)
+        const nonVeggieRegex = /\b(fleisch|hackfleisch|rinderhack|schweinehack|gemischtes hack|hähnchen|hühnchen|pute|putenbrust|schnitzel|steak|bratwurst|würstchen|wiener|bockwurst|schinken|prosciutto|pancetta|speck|bacon|fisch|lachs|räucherlachs|thunfisch|garnelen|scampi|salami|chorizo|kotelett|gulasch|mett|leberwurst|gelatine|sardelle|sardellen|anchovis|hühnerbrühe|rinderbrühe|fleischbrühe|schmalz)\b/;
+        const isVeggie = tags.includes('Vegetarisch') || !nonVeggieRegex.test(ingNamesLower);
 
-        const isBaking = tags.includes('Backen') || bakingKeywords.some(w => text.includes(w));
-        const isVeggie = tags.includes('Vegetarisch') || !meatFishRegex.test(ingNamesLower);
-        const isKidFriendly = tags.includes('Kindgerecht') || (!nonKidKeywords.some(w => text.includes(w)) && nut.perServing.salt <= 1.8);
-        const isQuick = tags.includes('Schnell') || (mentionedMinutes !== null && mentionedMinutes <= 25) || (ings.length > 0 && ings.length <= 6 && !isBaking);
-        const isGrill = tags.includes('Grillen') || grillKeywords.some(w => text.includes(w));
-        const isMealPrep = tags.includes('Einfrierbar') || ['einfrieren', 'eintopf', 'suppe', 'auflauf', 'lasagne', 'bolognese', 'curry', 'gulasch', 'chili'].some(w => text.includes(w));
-        const isOnePot = tags.includes('One-Pot') || onePotKeywords.some(w => text.includes(w));
-        const isHighProtein = tags.includes('Proteinreich') || nut.perServing.p >= 22;
-        const isLight = tags.includes('Leicht') || (nut.hasData && nut.perServing.kcal > 0 && nut.perServing.kcal <= 520 && !isBaking);
-        const isLowCarb = tags.includes('Low-Carb') || (nut.hasData && nut.perServing.c <= 25 && !isBaking);
-        const isBudget = ['kartoffel', 'linsen', 'haferflocken', 'ei', 'nudeln', 'reis', 'bohn', 'möhre', 'karotte'].some(w => text.includes(w)) && !['lachs', 'steak', 'filet', 'garnelen', 'pinienkerne'].some(w => text.includes(w));
+        // 3. Kindgerecht (strenge Zucker-, Salz-, Schärfe-, Alkohol- & Rohkost-Bremse)
+        const nonKidRegex = /\b(chili|chilischote|chiliflocken|jalapeño|tabasco|cayenne|pfefferoni|harissa|wasabi|alkohol|rotwein|weißwein|bier|rum|likör|amaretto|espresso|kaffee|matcha|räucherlachs|sushi|tatar|tiramisu|rohes ei)\b/;
+        const heavySweetRegex = /\b(zucker|puderzucker|brauner zucker|rohrzucker|schokolade|kuvertüre|nutella|nougat|zuckerguss|karamell|sirup)\b/;
+        const explicitBabyFriendly = /\b(baby|kleinkind|zuckerfrei|ohne zucker|blw)\b/.test(text);
+        const isSweetDessertOrCake = isBaking || cat === 'DessertsSuessspeisen';
+        const hasTooMuchSugar = !explicitBabyFriendly && ((nut.hasData && nut.perServing.sugar > 12) || (isSweetDessertOrCake && heavySweetRegex.test(ingNamesLower)));
+        const hasTooMuchSalt = nut.hasData && nut.perServing.salt > 1.2;
+        const isKidFriendly = tags.includes('Kindgerecht') || (!nonKidRegex.test(text) && !hasTooMuchSugar && !hasTooMuchSalt && cat !== 'GetraenkeSirup');
+
+        // 4. Schnell (längste Zeitangabe im Text auswerten + Schmor-/Gehzeit-Sperre)
+        const allTimeMatches = [...text.matchAll(/(\d+)\s*(?:min|minuten)/g)].map(m => parseInt(m[1], 10));
+        const maxMinutes = allTimeMatches.length > 0 ? Math.max(...allTimeMatches) : null;
+        const slowProcessRegex = /\b(schmoren|schmortopf|marinieren|ziehen lassen|über nacht|gehen lassen|ruhezeit|ruhen lassen|low\s*&\s*slow|stunden)\b/;
+        const isSlowProcess = slowProcessRegex.test(text);
+        const isQuick = tags.includes('Schnell') || (
+            !isSlowProcess &&
+            !isBaking &&
+            (
+                (maxMinutes !== null && maxMinutes <= 30) ||
+                (maxMinutes === null && ings.length > 0 && ings.length <= 6 && !notesLower.includes('backofen'))
+            )
+        );
+
+        // 5. Grillen / BBQ
+        const grillRegex = /\b(grill|grillen|bbq|barbecue|grillrost|direkte hitze|indirekte hitze|dutch oven|räuchern|smoker)\b/;
+        const isGrill = tags.includes('Grillen') || grillRegex.test(text);
+
+        // 6. Einfrierbar (keine rohen Blattsalate/Gurken als Basis)
+        const noFreezeRegex = /\b(blattsalat|feldsalat|rucola|eisbergsalat|kopfsalat|salatgurke)\b/;
+        const mealPrepRegex = /\b(einfrieren|eintopf|suppe|lasagne|bolognese|curry|gulasch|chili con carne|chili sin carne|frikadellen|buletten)\b/;
+        const isMealPrep = tags.includes('Einfrierbar') || (!noFreezeRegex.test(ingNamesLower) && (mealPrepRegex.test(text) || cat === 'SuppenEintoepfe'));
+
+        // 7. One-Pot / Ofen (Multi-Topf-Sperre & Backwaren-Sperre!)
+        const onePotPhraseRegex = /\b(one-pot|one pot|eintopf|pfannengericht|alles in einen topf|in einer pfanne|ofengemüse|blechgericht|vom blech|aufs backblech|auflauf|gratin|lasagne|ofenkartoffeln)\b/;
+        const hasPot = /\b(topf|kochtopf|nudeltopf)\b/.test(notesLower);
+        const hasPan = /\b(pfanne|bratpfanne)\b/.test(notesLower);
+        const multiVesselPhrases = /\b(separat kochen|getrennt kochen|in einem zweiten|währenddessen in einer|parallel dazu)\b/;
+        const isMultiVessel = (hasPot && hasPan) || multiVesselPhrases.test(notesLower);
+        const isOnePot = tags.includes('One-Pot') || (!isBaking && !isMultiVessel && onePotPhraseRegex.test(text));
+
+        // 8. Proteinreich (min. 25g Eiweiß oder >= 22% Kalorienanteil bei ausreichender Abdeckung)
+        const proteinCalShare = (nut.hasData && nut.perServing.kcal > 0) ? ((nut.perServing.p * 4) / nut.perServing.kcal) : 0;
+        const isHighProtein = tags.includes('Proteinreich') || (nut.coverage >= 70 && (nut.perServing.p >= 25 || proteinCalShare >= 0.22));
+
+        // 9. Leicht (min. 75% Abdeckung, <= 520 kcal, <= 22g Fett, keine Frittier-/Sahnebomben)
+        const heavyFatWords = /\b(frittieren|blätterteig|mascarpone|schlagsahne|mayonnaise)\b/;
+        const isLight = tags.includes('Leicht') || (
+            nut.coverage >= 75 &&
+            !isBaking &&
+            !heavyFatWords.test(ingNamesLower) &&
+            nut.perServing.kcal > 0 &&
+            nut.perServing.kcal <= 520 &&
+            nut.perServing.f <= 22
+        );
+
+        // 10. Low-Carb (min. 75% Abdeckung, <= 20g KH UND keine klassischen Sättigungsbeilagen)
+        const highCarbIngRegex = /\b(nudeln|spaghetti|penne|fusilli|tagliatelle|lasagne|reis|basmati|risotto|kartoffel|kartoffeln|süßkartoffel|mehl|weizenmehl|dinkelmehl|brot|toast|brötchen|gnocchi|spätzle|couscous|bulgur|haferflocken|zucker)\b/;
+        const isLowCarb = tags.includes('Low-Carb') || (
+            nut.coverage >= 75 &&
+            !isBaking &&
+            !highCarbIngRegex.test(ingNamesLower) &&
+            nut.perServing.c <= 20
+        );
+
+        // Budget-Check für Wochenplan
+        const isBudget = /\b(kartoffel|linsen|haferflocken|ei|eier|nudeln|reis|bohnen|möhre|karotte)\b/.test(ingNamesLower) && !/\b(lachs|steak|filet|garnelen|pinienkerne)\b/.test(ingNamesLower);
 
         return {
             isBaking,
@@ -2086,7 +2200,9 @@
         });
     });
 
-    // --- KATEGORIE-, LAGERORT- & MHD-ERKENNUNG (FIX FÜR GEFRIERTRUHE, GEHACKTE NÜSSE & SNACKS) ---
+    filterRecipeCategory.addEventListener('change', renderRecipes);
+
+    // --- VORRATS-KATEGORIE-, LAGERORT- & MHD-ERKENNUNG ---
     function detectCategoryAndLocation(productName, barcodeTags = '') {
         const nameLower = (productName || '').toLowerCase().trim();
         const cleanTags = (barcodeTags || '')
@@ -2095,7 +2211,6 @@
             .replace(/beverages-and-beverages-preparations/g, '');
         const text = `${nameLower} ${cleanTags}`;
 
-        // 1. Pflanzliche Milch & Kokosmilch
         if (nameLower.includes('kokosmilch') || nameLower.includes('kokoscreme')) {
             return { category: 'Konserven', location: 'Vorratsschrank', mhdDays: null };
         }
@@ -2104,11 +2219,9 @@
             return { category: 'Getränke', location: 'Vorratsschrank', mhdDays: null };
         }
 
-        // 2. Exakte Tiefkühl-Erkennung (verhindert Fehlalarme bei Keksen, Nüssen oder unklaren Tags!)
         const isFrozenName = /\b(tk|tiefkühl|tiefgekühlt|gefroren|speiseeis|fischstäbchen|pommes|kroketten|blätterteig-tk)\b/.test(nameLower) || nameLower.startsWith('tk ') || nameLower.startsWith('tk-');
         const isFrozenTag = cleanTags.includes('en:frozen-foods') || cleanTags.includes('en:ice-creams');
 
-        // 3. Exakte Fleisch- & Fisch-Wortgrenzen (verhindert "gehackte Nüsse" -> Fleisch!)
         const meatFishRegex = /\b(fleisch|hackfleisch|rinderhack|schweinehack|gemischtes hack|hähnchen|hühnchen|pute|putenbrust|schnitzel|steak|rinderfilet|schweinefilet|hähnchenfilet|lachsfilet|fischfilet|gulasch|bratwurst|wurst|aufschnitt|schinken|salami|speck|bacon|fisch|lachs|forelle|kabeljau|seelachs|garnelen|scampi|thunfisch)\b/;
         const isMeatFish = meatFishRegex.test(nameLower) || cleanTags.includes('en:meats') || cleanTags.includes('en:fishes') || cleanTags.includes('en:seafood');
 
@@ -2121,7 +2234,6 @@
             };
         }
 
-        // 4. Backzutaten (inkl. gemahlene/gehackte/gestiftelte Nüsse & Mandeln VOR Snacks und VOR Fleisch prüfen!)
         const bakingRegex = /\b(back family|backzutat|backpulver|natron|vanillin|vanillezucker|vanilleextrakt|trockenhefe|hefe|kuvertüre|schokodrops|backkakao|speisestärke|tortenguss|gelatine|marzipan|puderzucker|kokosraspel|rosinen|sultaninen|pinienkerne|walnuss|walnüsse|haselnuss|haselnüsse|mandeln|mandelblättchen|mandelstifte|haselnusskrokant)\b/;
         const isBakingNutPrep = /(gehackt|gemahlen|gestiftelt|blättchen|hobel|back)/.test(nameLower) && /(nuss|nüsse|mandel|pistazie|cashew)/.test(nameLower);
         if (bakingRegex.test(nameLower) || isBakingNutPrep || cleanTags.includes('en:baking-ingredients')) {
@@ -2132,7 +2244,6 @@
             };
         }
 
-        // 5. Süßigkeiten & Snacks (Chips, Schokolade, Kekse, Knabbernüsse)
         const snackRegex = /\b(chips|kartoffelchips|tortillachips|nachos|flips|erdnussflips|salzstangen|brezeln|cracker|popcorn|schokolade|schokoriegel|riegel|gummibärchen|fruchtgummi|lakritz|bonbon|bonbons|kekse|keks|butterkeks|waffeln|pralinen|studentenfutter|erdnüsse|cashews|cashewkerne|pistazien|macadamia|knabber|snack|snacks|reiswaffeln|maiswaffeln)\b/;
         if (snackRegex.test(nameLower) || cleanTags.includes('en:snacks') || cleanTags.includes('en:sweet-snacks') || cleanTags.includes('en:salty-snacks') || cleanTags.includes('en:chocolates') || cleanTags.includes('en:biscuits')) {
             return {
@@ -2142,12 +2253,10 @@
             };
         }
 
-        // 6. Frisches Fleisch & Fisch
         if (isMeatFish) {
             return { category: 'FleischFisch', location: 'Kühlschrank', mhdDays: 2, mhdReason: 'frisches Fleisch/Fisch' };
         }
 
-        // 7. Obst & Gemüse
         const shortFridgeProduce = [
             'salat', 'feldsalat', 'rucola', 'eisberg', 'spinat', 'spargel',
             'pilz', 'champignon', 'pfifferling', 'erdbeer', 'himbeer', 'blaubeer', 'heidelbeer', 'brombeer', 'johannisbeer', 'frühlingszwiebel'
@@ -2184,7 +2293,6 @@
             }
         }
 
-        // 8. Molkereiprodukte
         const dairyWords = [
             'milch', 'kuhmilch', 'vollmilch', 'h-milch', 'joghurt', 'käse', 'butter', 'quark', 'sahne', 'frischkäse', 'schmand', 'crème fraîche',
             'mozzarella', 'parmesan', 'gouda', 'emmentaler', 'feta', 'mascarpone', 'ricotta', 'skyr', 'kefir', 'buttermilch',
@@ -2198,7 +2306,6 @@
             };
         }
 
-        // 9. Konserven & Gläser
         const cannedWords = [
             'passierte tomaten', 'gehackte tomaten', 'tomatenmark', 'maiskörner', 'kidneybohnen', 'kichererbsen',
             'erbsen', 'linsen', 'rotkohl im glas', 'apfelmus', 'marmelade', 'konfitüre', 'honig', 'nutella', 'aufstrich',
@@ -2209,7 +2316,6 @@
             return { category: 'Konserven', location: 'Vorratsschrank', mhdDays: null };
         }
 
-        // 10. Trockenwaren
         const dryWords = [
             'nudel', 'pasta', 'spaghetti', 'penne', 'fusilli', 'tagliatelle', 'lasagne', 'reis', 'basmati', 'risotto',
             'mehl', 'weizenmehl', 'dinkelmehl', 'zucker', 'haferflocken', 'müsli', 'cornflakes', 'grieß', 'paniermehl', 'semmelbrösel',
@@ -2219,7 +2325,6 @@
             return { category: 'Trockenwaren', location: 'Vorratsschrank', mhdDays: null };
         }
 
-        // 11. Gewürze & Soßen
         const spiceSauceWords = [
             'gewürz', 'salz', 'pfeffer', 'paprikapulver', 'curry', 'kurkuma', 'oregano', 'thymian', 'zimt', 'muskat',
             'öl', 'olivenöl', 'rapsöl', 'sonnenblumenöl', 'essig', 'balsamico', 'sojasoße', 'sojasauce',
@@ -2234,7 +2339,6 @@
             };
         }
 
-        // 12. Getränke
         const drinkWords = [
             'wasser', 'mineralwasser', 'sprudel', 'saft', 'apfelsaft', 'orangensaft', 'multivitamin', 'nektar', 'schorle',
             'cola', 'limonade', 'limo', 'eistee', 'energy', 'bier', 'radler', 'wein', 'sekt', 'prosecco',
@@ -2640,6 +2744,7 @@
     window.findRecipesWithIngredient = function(itemName) {
         switchTab('REZEPTE');
         setRecipeFilter('ALL');
+        filterRecipeCategory.value = 'ALLE';
         recipeSearchInput.value = itemName;
         renderRecipes();
     };
@@ -2957,7 +3062,7 @@
         });
     }
 
-    // --- WOCHENPLAN-GENERATOR (SCHLIESST "BACKEN"-REZEPTE AUTOMATISCH AUS) ---
+    // --- WOCHENPLAN-GENERATOR (NUR HAUPTGERICHTE & SUPPEN/EINTÖPFE) ---
     const togglePlannerBtn = document.getElementById('togglePlannerBtn');
     const plannerBox = document.getElementById('plannerBox');
     const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
@@ -2980,13 +3085,18 @@
         return Array.from(document.querySelectorAll('#plannerFocusChips .focus-chip.active')).map(c => c.dataset.focus);
     }
 
+    function isMainMealRecipe(rec) {
+        const cat = rec.category || 'Hauptgericht';
+        if (!['Hauptgericht', 'SuppenEintoepfe'].includes(cat)) return false;
+        const info = analyzeRecipeCharacteristics(rec);
+        return !info.isBaking;
+    }
+
     function scoreRecipeForDay(rec, dayIndex, activeFocuses, alreadyChosenIds, chosenRecipes) {
         if (alreadyChosenIds.has(rec.id)) return -99999;
+        if (!isMainMealRecipe(rec)) return -99999;
 
         const info = analyzeRecipeCharacteristics(rec);
-        // Backwaren / Kuchen nicht als Hauptmahlzeit im Wochenplan vorschlagen
-        if (info.isBaking) return -99999;
-
         const targetServings = parseFloat(document.getElementById('planServings').value) || 2.5;
         const baseServings = rec.servings || 4;
         const factor = targetServings / baseServings;
@@ -3063,11 +3173,11 @@
     }
 
     function generateBalancedWeekPlan() {
-        const mealRecipes = recipes.filter(r => !analyzeRecipeCharacteristics(r).isBaking);
+        const mealRecipes = recipes.filter(r => isMainMealRecipe(r));
         if (mealRecipes.length === 0) {
             document.getElementById('generatedPlanResult').innerHTML = `
                 <div class="empty-state" style="padding:16px; font-size:0.88rem;">
-                    Ihr habt noch keine Hauptgerichte gespeichert (Rezepte mit dem Tag „🧁 Backen“ werden für den Wochenplan übersprungen).
+                    Ihr habt noch keine Rezepte in „🍽️ Hauptgericht“ oder „🍲 Suppen & Eintöpfe“ gespeichert.
                 </div>`;
             return;
         }
@@ -3177,7 +3287,7 @@
 
     document.getElementById('generatePlanBtn').addEventListener('click', generateBalancedWeekPlan);
 
-    // --- REZEPTE: 10 TAGS, AUTO-TAG-ERKENNUNG & GEMINI-PARSER ---
+    // --- REZEPTE: 13 KATEGORIEN, 10 TAGS & GEMINI-PARSER ---
     const toggleRecipeFormBtn = document.getElementById('toggleRecipeFormBtn');
     const recipeFormCard = document.getElementById('recipeFormCard');
     const ingredientRows = document.getElementById('ingredientRows');
@@ -3199,6 +3309,25 @@
         });
     }
 
+    function detectRecipeCategoryFromText(rawText) {
+        const lower = (rawText || '').toLowerCase();
+
+        if (/\b(weihnacht|advent|spekulatius|lebkuchen|zimtstern|stollen|christstollen|glühwein|punsch|nikolaus|vanillekipferl)\b/.test(lower)) return 'WeihnachtenAdvent';
+        if (/\b(dessert|nachtisch|süßspeise|pudding|mousse|milchreis|grießbrei|panna cotta|creme brûlée|crème brûlée|tiramisu|rote grütze|grütze|kompott|obstsalat|eiscreme|sorbet|parfait)\b/.test(lower)) return 'DessertsSuessspeisen';
+        if (/\b(plätzchen|kekse|keks|butterkeks|makronen|waffeln|zimtschnecken|müsliriegel|kleingebäck|baiser)\b/.test(lower)) return 'PlaetzchenKleingebaeck';
+        if (/\b(kuchen|torte|muffin|muffins|cupcake|brownie|käsekuchen|apfelkuchen|blechkuchen|hefezopf|bananenbrot|biskuit|rührkuchen|gebäck)\b/.test(lower)) return 'KuchenGebaeck';
+        if (/\b(herbst|kürbis|hokkaido|butternut|spargel|ostern|osterlamm|bärentatzen|bärlauch|erdbeerkuchen|zwetschgenkuchen|federweißer|saison)\b/.test(lower)) return 'HerbstSaison';
+        if (/\b(frühstück|brunch|pfannkuchen|pancake|porridge|overnight oats|müsli|rührei|spiegelei|omelett|french toast|armerritter|arme ritter)\b/.test(lower)) return 'FruehstueckBrunch';
+        if (/\b(salat|nudelsalat|kartoffelsalat|couscoussalat|bowl|buddha bowl|wrap|wraps|kalte küche|gazpacho)\b/.test(lower)) return 'SalateKalteKueche';
+        if (/\b(suppe|eintopf|cremesuppe|gulaschsuppe|kartoffelsuppe|kürbissuppe|linseneintopf|erbseneintopf|chili con carne|chili sin carne)\b/.test(lower)) return 'SuppenEintoepfe';
+        if (/\b(beilage|brot|baguette|ciabatta|focaccia|brötchen|kräuterbutter|kartoffelgratin|spätzle|knödel|klöße|kroketten)\b/.test(lower)) return 'BeilagenBrot';
+        if (/\b(dip|soße|sauce|pesto|hummus|guacamole|tzatziki|kräuterquark|dressing|aioli|chutney|aufstrich)\b/.test(lower)) return 'DipsSossenPestos';
+        if (/\b(party|fingerfood|blätterteigschnecken|pizzaschnecken|quiche|snack|snacks|bällchen|spieße|tapas)\b/.test(lower)) return 'PartyFingerfood';
+        if (/\b(getränk|sirup|smoothie|limonade|eistee|cocktail|mocktail|kakao|heißer apfel)\b/.test(lower)) return 'GetraenkeSirup';
+
+        return 'Hauptgericht';
+    }
+
     function matchTagsFromString(rawTagLine) {
         const found = new Set();
         const lower = (rawTagLine || '').toLowerCase();
@@ -3211,8 +3340,8 @@
             { tag: 'Einfrierbar', keys: ['einfrierbar', 'einfrieren', 'meal-prep', 'meal prep', 'vorkochen'] },
             { tag: 'Proteinreich', keys: ['proteinreich', 'protein', 'eiweißreich', 'high-protein', 'high protein'] },
             { tag: 'Low-Carb', keys: ['low-carb', 'low carb', 'kohlenhydratarm', 'keto'] },
-            { tag: 'Leicht', keys: ['leicht', 'kalorienarm', 'figurbewusst', 'gesund', 'salat'] },
-            { tag: 'One-Pot', keys: ['one-pot', 'one pot', 'ein topf', 'pfannengericht', 'blech', 'ofen'] },
+            { tag: 'Leicht', keys: ['leicht', 'kalorienarm', 'figurbewusst', 'gesund'] },
+            { tag: 'One-Pot', keys: ['one-pot', 'one pot', 'ein topf', 'pfannengericht', 'blech'] },
             { tag: 'Backen', keys: ['backen', 'kuchen', 'gebäck', 'muffins', 'brot', 'torte', 'plätzchen'] }
         ];
 
@@ -3293,12 +3422,13 @@
         if (rawLines.length === 0) return;
 
         let title = '';
+        let explicitCategory = null;
         const parsedIngredients = [];
         const stepLines = [];
         const detectedTags = new Set();
         let section = 'UNKNOWN';
 
-        const unitPattern = 'g|gr|gramm|kg|kilogramm|ml|milliliter|l|liter|tl|teelöffel|el|esslöffel|prise|prisen|bund|zehe|zehen|dose|dosen|glas|gläser|becher|stk\\.?|stück|packung|pck\\.?|päckchen';
+        const unitPattern = 'g|gr|gramm|kg|kilogramm|kilo|ml|milliliter|l|liter|tl|teelöffel|el|esslöffel|prise|prisen|bund|zehe|zehen|dose|dosen|glas|gläser|becher|stk\\.?|stück|packung|pck\\.?|päckchen';
         const ingFrontRegex = new RegExp(`^(?:ca\\.?\\s+|etwa\\s+|gut\\s+|knapp\\s+)?(\\d+(?:[.,]\\d+)?|l|I)\\s*(${unitPattern})?\\s+(.+)$`, 'i');
         const ingBackRegex = new RegExp(`^([A-Za-zÄÖÜäöüß\\s\\-()]+?)[,:]?\\s+(\\d+(?:[.,]\\d+)?)\\s*(${unitPattern})$`, 'i');
 
@@ -3311,13 +3441,24 @@
 
             const lower = cleanLine.toLowerCase();
 
-            // 1. Explizite Kategorie- / Tag-Zeile abfangen
-            const tagLineMatch = cleanLine.match(/^(?:kategorie(?:n)?|tags?|schlagwörter|labels?)\s*[:\-]\s*(.+)$/i);
+            // 1. Explizite Kategorie- oder Tag-Zeile abfangen
+            const catOnlyMatch = cleanLine.match(/^(?:kategorie|rezeptart|anlass)\s*[:\-]\s*(.+)$/i);
+            if (catOnlyMatch) {
+                const val = catOnlyMatch[1];
+                const foundCat = detectRecipeCategoryFromText(val);
+                if (foundCat !== 'Hauptgericht' || /hauptgericht/i.test(val)) {
+                    explicitCategory = foundCat;
+                }
+                matchTagsFromString(val).forEach(t => detectedTags.add(t));
+                return;
+            }
+
+            const tagLineMatch = cleanLine.match(/^(?:tags?|schlagwörter|labels?)\s*[:\-]\s*(.+)$/i);
             if (tagLineMatch) {
                 matchTagsFromString(tagLineMatch[1]).forEach(t => detectedTags.add(t));
                 return;
             }
-            // Falls Zeile fast nur aus Tag-Chips mit Emojis besteht (z. B. "👶 Kindgerecht • ⚡ Schnell")
+
             if (cleanLine.length <= 95 && /[👶⚡🥦🔥🧊💪🌾🥗🍲🧁]/.test(cleanLine) && !ingFrontRegex.test(cleanLine)) {
                 const emojiTags = matchTagsFromString(cleanLine);
                 if (emojiTags.length > 0) {
@@ -3346,7 +3487,7 @@
                 return;
             }
 
-            // 4. Zwischenüberschriften im Zutatenteil ignorieren (z. B. "Für den Teig:", "Für das Topping:", "Zum Garnieren:")
+            // 4. Zwischenüberschriften im Zutatenteil ignorieren
             if (/^(für\s+(?:den|die|das)|zum\s+(?:garnieren|servieren|bestreuen|braten|backen)|außerdem)\b.*:?$/i.test(cleanLine) && cleanLine.length <= 45) {
                 if (section !== 'STEPS') section = 'INGREDIENTS';
                 return;
@@ -3433,19 +3574,22 @@
             document.getElementById('recTitle').value = title;
         }
 
+        const finalCategory = explicitCategory || detectRecipeCategoryFromText(`${title} ${rawText}`);
+        document.getElementById('recCategory').value = finalCategory;
+
         if (parsedIngredients.length > 0) {
             ingredientRows.innerHTML = '';
             parsedIngredients.forEach(ing => addIngredientInputRow(ing.name, ing.amount, ing.unit));
         }
 
         if (stepLines.length > 0) {
-            // Sauber ersetzen statt doppelt anhängen
             document.getElementById('recNotes').value = stepLines.join('\n');
         }
 
-        // Intelligentes Auto-Tagging ergänzen
+        // Geschärftes Auto-Tagging ergänzen
         const pseudoRec = {
             title: title || document.getElementById('recTitle').value,
+            category: finalCategory,
             servings: parseFloat(document.getElementById('recServings').value) || 4,
             ingredients: parsedIngredients.map(i => ({ ...i, amount: i.amount ? parseFloat(i.amount) : null })),
             notes: stepLines.join('\n'),
@@ -3466,10 +3610,11 @@
         const finalTags = Array.from(detectedTags);
         setSelectedFormTags(finalTags);
 
-        const tagSummary = finalTags.length > 0 ? ` & Tags (${finalTags.join(', ')})` : '';
+        const catLabel = recipeCategoryLabels[finalCategory] || finalCategory;
+        const tagSummary = finalTags.length > 0 ? ` • Tags: ${finalTags.join(', ')}` : '';
         ocrFeedback.style.display = 'block';
         ocrFeedback.style.color = 'var(--success)';
-        ocrFeedback.textContent = `✅ ${sourceLabel} erkannt: ${parsedIngredients.length} Zutaten, ${stepLines.length} Schritte${tagSummary} übernommen!`;
+        ocrFeedback.textContent = `✅ ${sourceLabel} erkannt: ${parsedIngredients.length} Zutaten, ${stepLines.length} Schritte • Kategorie: ${catLabel}${tagSummary}`;
     }
 
     // --- PDF-TEXTEXTRAKTION (ZEILENGENAU) ---
@@ -3616,6 +3761,7 @@
     function resetRecipeFormFieldsOnly() {
         document.getElementById('recipeForm').reset();
         document.getElementById('editRecipeId').value = '';
+        document.getElementById('recCategory').value = 'Hauptgericht';
         document.getElementById('recServings').value = 4;
         setSelectedFormTags([]);
         document.getElementById('recipeFormTitle').textContent = 'Neues Rezept anlegen';
@@ -3650,6 +3796,7 @@
     async function saveRecipeEntry(keepOpenForNext = false) {
         const editId = document.getElementById('editRecipeId').value;
         const title = document.getElementById('recTitle').value.trim();
+        const category = document.getElementById('recCategory').value || 'Hauptgericht';
         const servings = parseFloat(document.getElementById('recServings').value) || 4;
         const tags = getSelectedFormTags();
         const notes = document.getElementById('recNotes').value.trim();
@@ -3681,9 +3828,9 @@
         }
 
         if (editId) {
-            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", editId), { title, servings, tags, notes, ingredients });
+            await updateDoc(doc(db, "haushalte", SECRET_HOUSEHOLD_ID, "rezepte", editId), { title, category, servings, tags, notes, ingredients });
         } else {
-            await addDoc(rezepteRef, { title, servings, tags, notes, ingredients, plannedThisWeek: false, lastCooked: null });
+            await addDoc(rezepteRef, { title, category, servings, tags, notes, ingredients, plannedThisWeek: false, lastCooked: null });
         }
 
         fetchAndLearnMissingNutrition(ingredients);
@@ -3722,6 +3869,7 @@
 
         document.getElementById('editRecipeId').value = rec.id;
         document.getElementById('recTitle').value = rec.title;
+        document.getElementById('recCategory').value = rec.category || 'Hauptgericht';
         document.getElementById('recServings').value = rec.servings || 4;
         setSelectedFormTags(rec.tags || []);
         document.getElementById('recNotes').value = rec.notes || '';
@@ -3752,7 +3900,7 @@
         if (!rec) return;
         const baseServings = rec.servings || 4;
         const current = recipeServingsOverride[id] || baseServings;
-        const next = Math.max(0.5, Math.min(20, Math.round((current + delta) * 10) / 10));
+        const next = Math.max(0.5, Math.min(40, Math.round((current + delta) * 10) / 10));
         recipeServingsOverride[id] = next;
         renderRecipes();
     };
@@ -3851,7 +3999,7 @@
         if (!rec) return;
 
         const activeServings = recipeServingsOverride[rec.id] || rec.servings || 4;
-        if (!confirm(`🍳 "${rec.title}" (${activeServings} Portionen) gekocht?\n\nAlle benötigten Zutaten werden jetzt nach kürzestem MHD vom Vorrat abgezogen und halb verbrauchte Packungen als angebrochen markiert.`)) {
+        if (!confirm(`🍳 "${rec.title}" (${activeServings} Portionen) zubereitet?\n\nAlle benötigten Zutaten werden jetzt nach kürzestem MHD vom Vorrat abgezogen und halb verbrauchte Packungen als angebrochen markiert.`)) {
             return;
         }
 
@@ -3974,6 +4122,7 @@
     function renderRecipes() {
         const rawRecSearch = recipeSearchInput.value.trim();
         const recSearchTerm = rawRecSearch.toLowerCase();
+        const selectedRecCat = filterRecipeCategory.value;
         clearRecipeSearchBtn.style.display = rawRecSearch ? 'flex' : 'none';
 
         const plannedRecipes = recipes.filter(r => r.plannedThisWeek);
@@ -4005,6 +4154,9 @@
             const ingMatch = scaledIngs.some(i => (i.name || '').toLowerCase().includes(recSearchTerm));
 
             if (recSearchTerm && !titleMatch && !notesMatch && !ingMatch) return false;
+
+            const recCat = rec.category || 'Hauptgericht';
+            if (selectedRecCat !== 'ALLE' && recCat !== selectedRecCat) return false;
 
             if (activeRecipeTagFilter) {
                 const recTags = rec.tags || [];
@@ -4050,6 +4202,8 @@
             const activeServings = recipeServingsOverride[rec.id] || rec.servings || 4;
             const allReady = scaledIngs.length > 0 && scaledIngs.every(i => checkIngredientStock(i).status === 'ok');
             const nut = calculateRecipeNutrition(rec, activeServings);
+            const recCat = rec.category || 'Hauptgericht';
+            const catBadge = `<span class="badge badge-cat">${recipeCategoryLabels[recCat] || recCat}</span>`;
 
             const tagsHtml = (rec.tags || []).map(t => `<span class="badge badge-tag">${recipeTagLabels[t] || t}</span>`).join(' ');
             const lastCookedText = rec.lastCooked
@@ -4070,11 +4224,11 @@
             }
 
             let kidHintHtml = '';
-            if (nut.hasData && (nut.perServing.salt > 1.6 || nut.perServing.sugar > 18)) {
+            if (nut.hasData && (nut.perServing.salt > 1.2 || nut.perServing.sugar > 12)) {
                 const reasons = [];
-                if (nut.perServing.salt > 1.6) reasons.push(`höherer Salzgehalt (~${nut.perServing.salt}g/Port.)`);
-                if (nut.perServing.sugar > 18) reasons.push(`höherer Zuckergehalt (~${nut.perServing.sugar}g/Port.)`);
-                kidHintHtml = `<div class="kid-hint-banner">👶 Kleinkind-Tipp: ${reasons.join(' & ')} – ggf. Kinderportion vor dem Würzen abnehmen.</div>`;
+                if (nut.perServing.salt > 1.2) reasons.push(`höherer Salzgehalt (~${nut.perServing.salt}g/Port.)`);
+                if (nut.perServing.sugar > 12) reasons.push(`höherer Zuckergehalt (~${nut.perServing.sugar}g/Port.)`);
+                kidHintHtml = `<div class="kid-hint-banner">👶 Kleinkind-Tipp: ${reasons.join(' & ')} – ggf. Kinderportion vor dem Würzen/Süßen abnehmen.</div>`;
             }
 
             const card = document.createElement('div');
@@ -4108,8 +4262,9 @@
             card.innerHTML = `
                 <div class="recipe-header">
                     <div>
-                        <h3>🍽️ ${rec.title}</h3>
+                        <h3>${rec.title}</h3>
                         <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">
+                            ${catBadge}
                             ${allReady ? `<span class="badge badge-ready">✅ Alle Zutaten da</span>` : ''}
                             ${lastCookedText}
                             ${tagsHtml}
@@ -4120,7 +4275,7 @@
                     <button type="button" class="icon-btn" onclick="deleteRecipe('${rec.id}')" title="Rezept löschen">🗑️</button>
                 </div>
                 <div class="servings-bar">
-                    <span>👥 Portionen:</span>
+                    <span>👥 Portionen / Stück:</span>
                     <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', -0.5)">-</button>
                     <span>${activeServings}</span>
                     <button type="button" class="serv-btn" onclick="changeRecipeServings('${rec.id}', 0.5)">+</button>
@@ -4129,7 +4284,7 @@
                 ${kidHintHtml}
                 ${ingHtml}
                 ${stepsHtml}
-                <button type="button" class="cook-done-btn" onclick="cookRecipe('${rec.id}')">🍳 Rezept gekocht – Zutaten vom Vorrat abziehen</button>
+                <button type="button" class="cook-done-btn" onclick="cookRecipe('${rec.id}')">🍳 Rezept zubereitet – Zutaten vom Vorrat abziehen</button>
             `;
             recipesContainer.appendChild(card);
         });
@@ -4153,7 +4308,7 @@
             return new Date(a.mhd) - new Date(b.mhd);
         });
         const topItems = sorted.slice(0, 10).map(i => `${i.amount} ${i.unit} ${i.name}`).join(', ');
-        const promptText = `Erstelle mir einen ausgewogenen, kleinkindgerechten Wochenplan (für 2 Erwachsene + 1 Kleinkind) und nutze dabei bevorzugt diese Vorräte, die bald verbraucht werden sollten: ${topItems}. Gib mir jedes Rezept im Format Titel, Portionen, passende Tags aus (Kindgerecht, Schnell, Vegetarisch, Grillen, Einfrierbar, Proteinreich, Low-Carb, Leicht, One-Pot, Backen), Zutatenliste mit Mengen und kurze Zubereitungsschritte aus.`;
+        const promptText = `Erstelle mir einen ausgewogenen, kleinkindgerechten Wochenplan (für 2 Erwachsene + 1 Kleinkind) und nutze dabei bevorzugt diese Vorräte, die bald verbraucht werden sollten: ${topItems}. Gib mir jedes Rezept im Format Titel, Kategorie (z.B. Hauptgericht, Suppen & Eintöpfe), Portionen, passende Tags aus (Kindgerecht, Schnell, Vegetarisch, Grillen, Einfrierbar, Proteinreich, Low-Carb, Leicht, One-Pot, Backen), Zutatenliste mit Mengen und kurze Zubereitungsschritte aus.`;
 
         try {
             await navigator.clipboard.writeText(promptText);
@@ -4171,7 +4326,7 @@
     function renderStatsModal(selectedYear) {
         const data = yearlyStats[selectedYear];
         if (!data || !data.items) {
-            statsContent.innerHTML = `<div class="empty-state" style="box-shadow:none;">Für <strong>${selectedYear}</strong> wurden noch keine Verbräuche gezählt. Sobald ihr im Vorrat auf „-“ tippt oder ein Rezept als gekocht markiert, füllt sich eure Jahresstatistik automatisch!</div>`;
+            statsContent.innerHTML = `<div class="empty-state" style="box-shadow:none;">Für <strong>${selectedYear}</strong> wurden noch keine Verbräuche gezählt. Sobald ihr im Vorrat auf „-“ tippt oder ein Rezept als zubereitet markiert, füllt sich eure Jahresstatistik automatisch!</div>`;
             return;
         }
 
