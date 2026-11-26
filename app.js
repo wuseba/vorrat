@@ -1580,7 +1580,16 @@ function normalizeIngredientTokens(rawStr) {
 
 function classifyIngredientGroup(nameStr) {
     const s = (nameStr || '').toLowerCase().trim();
-
+// Tütengerichte & Fix-Produkte zuerst abfangen (damit "Fix für Bolognese" nicht mit echten Tomaten/Nudeln verwechselt wird)
+    if (/\b(maggi\s*fix|knorr\s*fix|fix\s*für|tütensuppe|tütengericht|fertiggericht|terrine|instant-nudeln|yum\s*yum)\b/.test(s)) {
+        if (s.includes('bolognese')) return 'fix_bolognese';
+        if (s.includes('chili')) return 'fix_chili';
+        if (s.includes('gulasch')) return 'fix_gulasch';
+        if (s.includes('lasagne')) return 'fix_lasagne';
+        if (s.includes('gratin') || s.includes('auflauf')) return 'fix_gratin';
+        if (s.includes('geschnetzeltes') || s.includes('rahm')) return 'fix_rahm';
+        return 'fix_general';
+    }
     if (s.includes('kokosmilch') || s.includes('kokosdrink')) return 'milk_coconut';
     if (s.includes('hafermilch') || s.includes('haferdrink')) return 'milk_oat';
     if (s.includes('sojamilch') || s.includes('sojadrink')) return 'milk_soy';
@@ -1695,7 +1704,9 @@ function isMainMealRecipe(rec) {
     const cat = rec.category || 'Hauptgericht';
     if (!['Hauptgericht', 'SuppenEintoepfe'].includes(cat)) return false;
     const info = analyzeRecipeCharacteristics(rec);
-    return !info.isBaking;
+    if (info.isBaking) return false;
+    if (info.isFestive) return false; // Festliche Gäste-/Feiertagsgerichte nicht im normalen Wochenplan vorschlagen
+    return true;
 }
 
 function scoreRecipeForDay(rec, dayIndex, activeFocuses, alreadyChosenIds, chosenRecipes) {
