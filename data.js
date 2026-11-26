@@ -275,7 +275,16 @@ export function detectCategoryAndLocation(productName, barcodeTags = '') {
             mhdDays: null
         };
     }
-
+// --- TÜTENGERICHTE & FIX-PRODUKTE (VOR NUDELN / TOMATEN / FLEISCH PRÜFEN!) ---
+    const fixRegex = /\b(maggi\s*fix|knorr\s*fix|fix\s*für|tütensuppe|tütengericht|fertiggericht|5-minuten-terrine|terrine|instant-nudeln|yum\s*yum|asia\s*nudeln|fertigsoße|fertigsauce|bratensoße|rahmsoße|jägersoße|hollandaise\s*tüte|kartoffelpüree\s*pulver)\b/;
+    if (fixRegex.test(text)) {
+        return {
+            category: 'KonservenFertig',
+            location: 'Vorratsschrank',
+            mhdDays: 365,
+            mhdReason: 'Fix-Produkt / Trockenware'
+        };
+    }
     // 7. Frisches Fleisch & Fisch
     if (isMeatFish) {
         return { category: 'FleischFisch', location: 'Kühlschrank', mhdDays: 2, mhdReason: 'frisches Fleisch/Fisch' };
